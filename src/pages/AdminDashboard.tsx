@@ -9,7 +9,7 @@ const AdminDashboard = () => {
 
     return (
         <div>
-            <h1>Admin Dashboard</h1>
+            <h1>Dang Nhap</h1>
             <button onClick={logout}>Logout</button>
             {/* Add components for managing branches, employees, and inventory */}
         </div>
