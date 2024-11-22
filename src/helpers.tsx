@@ -6,4 +6,5 @@ import AdminDashboard from './pages/AdminDashboard';
 import NLogin from './pages/client/NLogin';
 import CatIcon  from './assets/cat+icon.png'; 
 import NavigationBar from './components/NavigationBar';
-export { NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar };
+import StockDetails from './pages/StockDetails';
+export { NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, StockDetails };
