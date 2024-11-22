@@ -1,17 +1,17 @@
 import { useAuth } from '../contexts/AuthContext';
+import { NavigationBar } from '../helpers';
 
 const AdminDashboard = () => {
     const authContext = useAuth();
     if (!authContext) {
         return <div>Error: Auth context is not available</div>;
     }
-    const { logout } = authContext;
-
     return (
-        <div>
-            <h1>Dang Nhap</h1>
-            <button onClick={logout}>Logout</button>
-            {/* Add components for managing branches, employees, and inventory */}
+        <div className='bg-[#15B392] min-h-screen max-w-screen'>
+            <NavigationBar />
+            <div>
+                
+            </div>
         </div>
     );
 };
