@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { NavigationBar } from '../helpers';
 import { FaPlusCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
-import { db } from '../services/firebaseConfig'; // Đảm bảo import đúng file cấu hình Firestore
+// import { db } from ''; // Đảm bảo import đúng file cấu hình Firestore
 import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
 const AdminDashboard = () => {
     const branches = [
@@ -47,7 +48,6 @@ const AdminDashboard = () => {
         }
 
         try {
-            // Thêm tài liệu mới vào Firestore
             await addDoc(collection(db, 'branches'), {
                 name: branchName,
                 password: password, // Lưu trữ thô, nhưng bạn có thể hash mật khẩu để bảo mật
@@ -61,9 +61,9 @@ const AdminDashboard = () => {
     };
 
     // Cập nhật handleAddBranch để sử dụng hàm thêm chi nhánh
-    const handleAddBranch = () => {
-        addBranchToFirestore(branchName, password);
-        handleCloseModal();
+    const handleAddBranch = async () => {
+        await addBranchToFirestore(branchName, password);
+        // handleCloseModal();
     };
 
 
@@ -71,30 +71,33 @@ const AdminDashboard = () => {
         <div className='bg-[#15B392] min-h-screen max-w-screen'>
             <NavigationBar />
             <div className="flex justify-center items-center pt-10">
-                <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] bg-[#D2FF72] inline-block'></span>
-                    <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 h-[40px] text-xl text-white font-medium'><span className=''>TẤT CẢ CHI NHÁNH</span></span></p>
+                <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
+                    <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>TẤT CẢ CHI NHÁNH</span></span></p>
             </div>
             <div className='w-full h-fit flex justify-end px-5 pt-5'>
-                <button onClick={handleOpenModal} className='flex justify-center items-center px-4 bg-white py-2 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
+                <button onClick={handleOpenModal} className='flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
             </div>
-            <div className='w-full h-fit grid grid-cols-2 gap-y-2 gap-x-6 pt-5 px-5' >
+            <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
                 {branches.map((branch, index) => (
-                    <div onClick={() => handleNavigate("123")} key={index} className='flex items-start mb-4 flex-col gap-y-2 group'>
-                        <div className='bg-white w-full p-2 rounded-md'>
-                            <div className='w-full h-[100px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
+                    <div onClick={() => handleNavigate("123")} key={index} className='flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
+                        <div className='bg-white w-full p-2 sm:p-4 rounded-md'>
+                            <div className='w-full h-[100px] sm:h-[200px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
                                 <div className='w-full h-full rounded-md overflow-hidden'>
                                     <img src={branch.image} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
                                 </div></div>
                         </div>
 
-                        <span className='text-white text-lg uppercase'>{branch.name}</span>
+                        <span className='text-white text-lg uppercase sm:text-2xl'>{branch.name}</span>
                     </div>
                 ))}
             </div>
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-                    <div className="bg-white p-5 rounded-md shadow-md">
-                        <h2 className="text-xl font-bold mb-4">THÊM CHI NHÁNH</h2>
+
+                    <div className="relative bg-white p-5 rounded-md shadow-md pt-24 w-[320px] sm:w-[400px] pb-24">
+                        <div className='w-[110%] absolute -left-[5%] -top-[20px] h-[80px] bg-[#15B392] flex justify-center items-center rounded-md shadow-lg'><h2 className="text-xl font-bold text-[#FEEC37] drop-shadow-md">THÊM CHI NHÁNH</h2></div>
+                        <div className='w-[80px] h-[80px] rounded-full bg-[#15b392] absolute -bottom-[50px] flex justify-center items-center '> <div className='w-[40px] h-[40px] bg-[#FEEC37] rounded-full shadow-xl'></div></div>
+                        <div className='w-[100px] h-[100px] rounded-full bg-[#15b392] absolute -bottom-[50px] right-[10px] flex justify-center items-center '> <div className='w-[60px] h-[60px] bg-[#FEEC37] rounded-full  shadow-xl' ></div></div>
                         <div className="mb-4">
                             <label className="block text-gray-700">Tên chi nhánh</label>
                             <input
@@ -113,7 +116,7 @@ const AdminDashboard = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
-                        <div className="flex justify-end gap-x-2">
+                        <div className="flex justify-between gap-x-2 pt-2">
                             <button
                                 className="px-4 py-2 bg-gray-300 rounded-md"
                                 onClick={handleCloseModal}
@@ -121,7 +124,7 @@ const AdminDashboard = () => {
                                 Cancel
                             </button>
                             <button
-                                className="px-4 py-2 bg-blue-500 text-white rounded-md"
+                                className="px-4 py-2 bg-[#15b392] text-white rounded-md border-[5px] border-solid border-[#73EC8B] shadow-inner"
                                 onClick={handleAddBranch}
                             >
                                 Thêm
