@@ -9,4 +9,11 @@ import NavigationBar from './components/NavigationBar';
 import StockDetails from './pages/StockDetails';
 import AddStockInfo from './pages/client/AddStockInfo';
 import AddStaff from './pages/admin/AddStaff';
-export { NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, AddStaff, StockDetails, AddStockInfo };
+import Notification from './components/Notification';
+import UpdateBranch from './pages/admin/UpdateBranch';
+import StaffDashboard from './pages/client/StaffDashboard';
+import SideBar from './components/SideBar';
+import Loading from './components/Loading';
+import ConfirmDialog from './components/ConfirmDialog';
+
+export { ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, AddStaff, StockDetails, AddStockInfo };

@@ -1,13 +1,12 @@
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { useEffect, useContext } from 'react';
-import { NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
-import SideBar from './components/SideBar';
-import SideBarContext from './contexts/SideBarContext';
+// import { useContext } from 'react';
+// import SideBarContext from './contexts/SideBarContext';
+import { ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
 
 const App = () => {
-  const navigate = useNavigate();
-  const { isOpen } = useContext(SideBarContext);
+  // const navigate = useNavigate();
+  // const { isOpen } = useContext(SideBarContext);
   // const userId = localStorage.getItem('userId');
 
   // useEffect(() => {
@@ -19,7 +18,10 @@ const App = () => {
   // }, [navigate, userId]);
   return (
     <div className='relative'>
+      <Notification />
       <SideBar />
+      <Loading />
+      <ConfirmDialog />
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Introduction />} />
@@ -30,6 +32,8 @@ const App = () => {
           <Route path="/quanly/nguyenkiet/chinhanh/:id" element={<StockDetails />} />
           <Route path="/nhanvien/capnhattonkho" element={<AddStockInfo />} />
           <Route path="/quanly/themnhanvien" element={<AddStaff />} />
+          <Route path="/quanly/capnhatchinhanh/:id" element={<UpdateBranch />} />
+          <Route path="/nhanvien/kho" element={<StaffDashboard />} />
 
           <Route path="/dangnhap" element={<AdminDashboard />} />
           <Route path="/employee" element={<EmployeeDashboard />} />

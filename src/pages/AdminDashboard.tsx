@@ -1,22 +1,21 @@
-import { useState } from 'react';
-import { NavigationBar } from '../helpers';
+import { useContext, useEffect, useState } from 'react';
+import { Loading, NavigationBar } from '../helpers';
 import { FaPlusCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 // import { db } from ''; // Đảm bảo import đúng file cấu hình Firestore
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
+import { uploadImage } from '../cloudinary';
+import { DocumentData, getDocs } from 'firebase/firestore/lite';
+import { deleteDoc, doc } from 'firebase/firestore/lite';
+import NotificationContextType from '../contexts/NotificationContext';
+import LoadingContext from '../contexts/LoadingContext';
+import { MdDelete } from "react-icons/md";
+import { FaPenToSquare } from "react-icons/fa6";
+import ConfirmContext from '../contexts/ConfirmContext';
+// Import Cloudinary SDK
 
 const AdminDashboard = () => {
-    const branches = [
-        { image: 'https://images.unsplash.com/photo-1731928962673-4d5a6a98b069?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHw0fHx8ZW58MHx8fHx8', name: 'Branch 1' },
-        { image: 'https://images.unsplash.com/photo-1731928962528-5b76c6d578c6?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHw3fHx8ZW58MHx8fHx8', name: 'Branch 2' },
-        { image: 'https://images.unsplash.com/photo-1732003039812-39c4cd9fce9b?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMnx8fGVufDB8fHx8fA%3D%3D', name: 'Branch 3' },
-        { image: 'https://images.unsplash.com/photo-1721332149346-00e39ce5c24f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxMXx8fGVufDB8fHx8fA%3D%3D', name: 'Branch 4' },
-        { image: 'https://images.unsplash.com/photo-1732019065295-eb9ece640258?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxN3x8fGVufDB8fHx8fA%3D%3D', name: 'Branch 5' },
-        { image: 'https://images.unsplash.com/photo-1664566484452-03b6f3817fdc?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyNXx8fGVufDB8fHx8fA%3D%3D', name: 'Branch 6' },
-        { image: 'https://images.unsplash.com/photo-1731570225640-7ddad4231679?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyOXx8fGVufDB8fHx8fA%3D%3D', name: 'Branch 7' },
-        { image: 'https://images.unsplash.com/photo-1731688687605-e1e7aa7fb42c?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzNXx8fGVufDB8fHx8fA%3D%3D', name: 'Branch 8' },
-    ];
     const navigate = useNavigate(); // Hook for navigation
     const handleNavigate = (branchId: string) => {
         navigate(`/quanly/nguyenkiet/chinhanh/${branchId}`);
@@ -24,8 +23,13 @@ const AdminDashboard = () => {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [branchName, setBranchName] = useState('');
+    const [branchId, setBranchId] = useState('');
     const [password, setPassword] = useState('');
-
+    const [img, setImg] = useState<File | null>(null);
+    const [branches, setBranches] = useState<DocumentData[]>([]);
+    const { setTypeAndMessage } = useContext(NotificationContextType);
+    const { open, close } = useContext(LoadingContext);
+    const { setDataToDelete } = useContext(ConfirmContext);
     const handleOpenModal = () => {
         setIsModalOpen(true);
     };
@@ -34,39 +38,82 @@ const AdminDashboard = () => {
         setIsModalOpen(false);
     };
 
+    const getAllBranches = async () => {
+        const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
+        const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
+        setBranches(branches);
+    }
+
     // Hàm thêm chi nhánh vào Firestore
-    const addBranchToFirestore = async (branchName: string, password: string) => {
+    const addBranchToFirestore = async (branchName: string, password: string, img: File) => {
         // Kiểm tra điều kiện ràng buộc
-        if (!branchName || branchName.length <= 5) {
-            alert("Tên chi nhánh phải lớn hơn 5 ký tự và không được để trống!");
+        open(); // Open loading
+        const regex = /^CN.{3}$/;
+        if (!regex.test(branchId)) {
+            close(); // Close loading
+            setTypeAndMessage('fail', 'Mã chi nhánh phải bắt đầu bằng CN và theo sau là 3 ký tự số!');
             return;
         }
-
-        if (!password || password.length <= 8) {
-            alert("Mật khẩu phải lớn hơn 8 ký tự và không được để trống!");
+        if (!password || password.length <= 7) {
+            close(); // Close loading
+            setTypeAndMessage('fail', 'Mật khẩu phải lớn hơn 7 ký tự và không được để trống!');
             return;
         }
-
+        const { public_id, url } = await uploadImage(img); // Upload image to Cloudinary and get image URL
         try {
-            await addDoc(collection(db, 'branches'), {
+            await addDoc(collection(db, 'branches'), { // Add branch to Firestore
+                branchImage: url, // Upload image to Cloudinary and get image URL
+                branchImagePublicId: public_id, // Upload image to Cloudinary and get public_id
                 name: branchName,
-                password: password, // Lưu trữ thô, nhưng bạn có thể hash mật khẩu để bảo mật
+                password: password,
                 createdAt: new Date().toISOString(),
+                branchId: branchId
             });
-            alert("Thêm chi nhánh thành công!");
+            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
+            const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
+            setBranches(branches);
+            setTypeAndMessage('success', 'Thêm chi nhánh thành công!');
+            setBranchName(''); // Reset branch name
+            setPassword(''); // Reset password
+            setImg(null); // Reset image
+            setIsModalOpen(false); // Close modal
+            setBranchId(''); // Reset branchId
+            close(); // Close loading
         } catch (error) {
+            close(); // Close loading
             console.error("Lỗi khi thêm chi nhánh:", error);
-            alert("Có lỗi xảy ra, vui lòng thử lại!");
+            setTypeAndMessage('fail', 'Lỗi khi thêm chi nhánh, vui lòng thử lại!');
         }
     };
 
     // Cập nhật handleAddBranch để sử dụng hàm thêm chi nhánh
     const handleAddBranch = async () => {
-        await addBranchToFirestore(branchName, password);
-        // handleCloseModal();
+
+        if (img && branchName !== '' && password !== '') { // If image is selected, upload image to Cloudinary
+            await addBranchToFirestore(branchName, password, img);
+        } else {
+            setTypeAndMessage('fail', "Vui lòng nhập đầy đủ thông tin!"); // Reset notification
+        }
     };
 
+    const handleDeleteBranch = async (id: string, public_id: string) => {
+        try {
+            console.log(public_id);
+            setDataToDelete('Xác nhận xóa', id, 'branches');
+        } catch (error) {
+            console.log("Lỗi khi xóa chi nhánh:", error);
+            setTypeAndMessage('fail', 'Lỗi khi xóa chi nhánh, vui lòng thử lại!');
+        }
 
+    }
+    const handleUpdateBranch = (id: string) => {
+        navigate(`/quanly/capnhatchinhanh/${id}`);
+    }
+
+
+    useEffect(() => {
+        getAllBranches();
+    }, [])
     return (
         <div className='bg-[#15B392] min-h-screen max-w-screen'>
             <NavigationBar />
@@ -77,17 +124,21 @@ const AdminDashboard = () => {
             <div className='w-full h-fit flex justify-end px-5 pt-5'>
                 <button onClick={handleOpenModal} className='flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
             </div>
+            {/* onClick={() => handleNavigate("123")} */}
             <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
                 {branches.map((branch, index) => (
-                    <div onClick={() => handleNavigate("123")} key={index} className='flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
-                        <div className='bg-white w-full p-2 sm:p-4 rounded-md'>
+                    <div key={index} className='bg-[rgba(0,0,0,.2)] rounded-md flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
+                        <div onClick={() => handleNavigate("123")} className='bg-white w-full p-2 sm:p-4 rounded-md'>
                             <div className='w-full h-[100px] sm:h-[200px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
                                 <div className='w-full h-full rounded-md overflow-hidden'>
-                                    <img src={branch.image} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
+                                    <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
                                 </div></div>
                         </div>
-
-                        <span className='text-white text-lg uppercase sm:text-2xl'>{branch.name}</span>
+                        <span className='text-white font-bold pl-2 text-lg uppercase sm:text-2xl'>{branch.name}</span>
+                        <div className='flex gap-x-4 justify-between w-full px-2 pb-2'>
+                            <button className='text-white font-bold text-2xl hover:text-red-600' onClick={() => handleDeleteBranch(branch.id, branch.branchImagePublicId)}><MdDelete /></button>
+                            <button className='text-white font-bold text-2xl hover:text-yellow-400' onClick={() => handleUpdateBranch(branch.id)}> <FaPenToSquare /> </button>
+                        </div>
                     </div>
                 ))}
             </div>
@@ -99,7 +150,7 @@ const AdminDashboard = () => {
                         <div className='w-[80px] h-[80px] rounded-full bg-[#15b392] absolute -bottom-[50px] flex justify-center items-center '> <div className='w-[40px] h-[40px] bg-[#FEEC37] rounded-full shadow-xl'></div></div>
                         <div className='w-[100px] h-[100px] rounded-full bg-[#15b392] absolute -bottom-[50px] right-[10px] flex justify-center items-center '> <div className='w-[60px] h-[60px] bg-[#FEEC37] rounded-full  shadow-xl' ></div></div>
                         <div className="mb-4">
-                            <label className="block text-gray-700">Tên chi nhánh</label>
+                            <label className="block text-gray-700">Tên chi nhánh(<span className='text-red-500'>*</span>)</label>
                             <input
                                 type="text"
                                 className="w-full p-2 border border-gray-300 rounded-md"
@@ -108,7 +159,7 @@ const AdminDashboard = () => {
                             />
                         </div>
                         <div className="mb-4">
-                            <label className="block text-gray-700">Mật khẩu</label>
+                            <label className="block text-gray-700">Mật khẩu(<span className='text-red-500'>*</span>)</label>
                             <input
                                 type="password"
                                 className="w-full p-2 border border-gray-300 rounded-md"
@@ -116,15 +167,37 @@ const AdminDashboard = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
+
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Mã chi nhánh(<span className='text-red-500'>*</span>)</label>
+                            <input
+                                placeholder="CN***"
+                                type="branchId"
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                                value={branchId}
+                                onChange={(e) => setBranchId(e.target.value)}
+                            />
+                        </div>
+
+
+                        <div className="mb-4">
+                            <label className="block text-gray-700">Hình ảnh(<span className='text-red-500'>*</span>)</label>
+                            <input
+                                type="file"
+                                className="w-full p-2 border border-gray-300 rounded-md"
+                                onChange={(e) => setImg(e.target.files ? e.target.files[0] : null)}
+                            />
+                        </div>
+
                         <div className="flex justify-between gap-x-2 pt-2">
                             <button
-                                className="px-4 py-2 bg-gray-300 rounded-md"
+                                className="hover:opacity-80 px-4 py-2 bg-gray-300 rounded-md"
                                 onClick={handleCloseModal}
                             >
                                 Cancel
                             </button>
                             <button
-                                className="px-4 py-2 bg-[#15b392] text-white rounded-md border-[5px] border-solid border-[#73EC8B] shadow-inner"
+                                className="hover:opacity-80 px-4 py-2 bg-[#15b392] text-white rounded-md border-[5px] border-solid border-[#73EC8B] shadow-inner"
                                 onClick={handleAddBranch}
                             >
                                 Thêm

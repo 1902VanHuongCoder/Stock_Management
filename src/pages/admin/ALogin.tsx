@@ -2,18 +2,21 @@ import Container from '../../components/Container';
 import { db } from '../../services/firebaseConfig'; // Import the db object from the firebase file
 import { collection, getDocs } from 'firebase/firestore/lite'; // Import the getFirestore, collection, and getDocs functions from the lite version of the Firebase SDK
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { CatIcon } from '../../helpers';
+import LoadingContext from '../../contexts/LoadingContext';
+import NotificationContext from '../../contexts/NotificationContext';
 
 const ALogin = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [error,] = useState('');
     const [usernameError, setUsernameError] = useState('');
     const [passwordError, setPasswordError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
-
+    const { open, close } = useContext(LoadingContext);
+    const { setTypeAndMessage } = useContext(NotificationContext);
     const validateInputs = () => {
         let isValid = true;
         if (!username) {
@@ -41,26 +44,27 @@ const ALogin = () => {
         if (!validateInputs()) {
             return;
         }
-
         try {
+            open(); // Open loading spinner
             const querySnapshot = await getDocs(collection(db, 'admin'));
             let isValidUser = false;
             querySnapshot.forEach((doc) => {
                 if (doc.data().username === username && doc.data().password === password) {
                     localStorage.setItem('adminId', doc.id);
                     isValidUser = true;
+                    close(); // Close loading spinner
                     navigate('/quanly/nguyenkiet');
+                    setTypeAndMessage('success', 'Đăng nhập thành công');
                 }
             });
 
             if (!isValidUser) {
-                setError('TÊN HOẶC MẬT KHẨU KHÔNG HỢP LỆ');
-            } else {
-                setError('');
+                close(); // Close loading spinner
+                setTypeAndMessage('fail', 'Tên đăng nhập hoặc mật khẩu không đúng');
             }
         } catch (error) {
             console.log('Error signing in: ', error);
-            setError('LỖI TRONG QUÁ TRÌNH ĐĂNG NHẬP');
+            setTypeAndMessage('fail', 'Kết nối mạng không ổn định! Vui lòng thử lại!');
         }
     };
 
@@ -103,7 +107,7 @@ const ALogin = () => {
                     </div>
                     {error && <p className="text-red-500 text-center mb-4  drop-shadow-2xl uppercase">{error}</p>}
                     <div>
-                        <button className=" py-2 px-6 text-[#15B392] bg-white border-solid border-[4px] border-[#D2FF72] shadow-inner font-semibold rounded-lg hover:bg-[#15B392] hover:text-white hover:scale-110 transition-all">ĐĂNG NHẬP</button>
+                        <button className=" py-2 px-6 text-[#15B392] bg-white border-solid border-[4px] border-[#D2FF72] shadow-inner font-semibold rounded-lg hover:bg-[#15B392] hover:text-white cursor-pointer transition-all">ĐĂNG NHẬP</button>
                     </div>
                 </form>
             </div>
