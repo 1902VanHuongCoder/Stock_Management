@@ -1,11 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { NavigationBar } from '../helpers';
 import { FaEdit, FaPenAlt, FaTrash } from "react-icons/fa";
 import { ButtonToHome } from '../components/ButtonToHome';
 import { FaFileExcel } from "react-icons/fa";
+import { useParams } from 'react-router-dom';
+import { collection, DocumentData, getDocs } from 'firebase/firestore/lite';
+import { db } from '../services/firebaseConfig';
 const StockDetails = () => {
+    const { id } = useParams<{ id: string }>();
+
     const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
+    const [branches, setBranches] = useState<DocumentData[]>([]);
+    console.log(branches);
     const [report, setReport] = useState({
         noOnForcingMachine: 0,
         total: 0,
@@ -14,17 +21,20 @@ const StockDetails = () => {
     });
     const [tab, setTab] = useState(0);
 
-    const branches = [
-        { id: '1', name: 'Branch 1' },
-        { id: '2', name: 'Branch 2' },
-        { id: '3', name: 'Branch 3' },
-        { id: '4', name: 'Branch 4' },
-        { id: '5', name: 'Branch 5' },
-        { id: '6', name: 'Branch 6' },
-        { id: '7', name: 'Branch 7' },
-        { id: '8', name: 'Branch 8' },
-    ];
 
+
+    useEffect(() => {
+        const getAllBranches = async () => {
+            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
+            const branches = querySnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return { id: doc.id, name: data.name };
+            }); // Map data from Firestore to branches array
+            setBranches(branches);
+        }
+
+        getAllBranches();
+    }, []);
     return (
         <div className='relative bg-[#15B392] min-h-screen max-w-screen'>
             <NavigationBar />
@@ -53,9 +63,9 @@ const StockDetails = () => {
                         </select>
                     </div>
                     <div className='mb-4'>
-                        <label htmlFor="date" className='block text-white font-medium mb-2'>Chọn ngày</label>
+                        <label htmlFor="date" className='block text-white font-medium mb-2'>Chọn tháng</label>
                         <input
-                            type="date"
+                            type="month"
                             id="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}

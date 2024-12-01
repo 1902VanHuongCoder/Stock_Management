@@ -4,12 +4,12 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore/lite';
 import { db } from '../../services/firebaseConfig';
 import { NavigationBar } from '../../helpers';
 import { uploadImage } from '../../cloudinary';
-import NotificationContext from '../../contexts/NotificationContext';
+import NotificationContextType from '../../contexts/NotificationContext';
 import LoadingContext from '../../contexts/LoadingContext';
 
 const UpdateBranch = () => {
     const { id } = useParams<{ id: string }>();
-    const { setTypeAndMessage } = useContext(NotificationContext);
+    const { setTypeAndMessage } = useContext(NotificationContextType);
     const { open, close } = useContext(LoadingContext);
     const navigate = useNavigate();
     interface BranchData {
@@ -25,9 +25,12 @@ const UpdateBranch = () => {
         branchId: '',
         branchImage: ''
     });
-    console.log(branchData);
+
+    console.log("Refresh");
+
     const [branchImageNew, setBranchImageNew] = useState<File | null>(null);
     useEffect(() => {
+
         const fetchBranch = async () => {
             open(); // Open loading spinner
             try {
@@ -64,9 +67,18 @@ const UpdateBranch = () => {
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
+        open(); // Open loading
         if (branchData.name === '' || !branchData.password || !branchData.branchId) {
             return;
         }
+
+        const regex = /^CN.{3}$/;
+        if (!regex.test(branchData.branchId)) {
+            close(); // Close loading
+            setTypeAndMessage('fail', 'Mã chi nhánh phải bắt đầu bằng CN và theo sau là 3 ký tự số!');
+            return;
+        }
+
         try {
             if (id) {
                 if (branchImageNew instanceof File) {
@@ -92,11 +104,11 @@ const UpdateBranch = () => {
                 setTypeAndMessage('error', 'Chi nhánh không tồn tại!');
             }
 
-
         } catch (error) {
             console.error('Error updating branch:', error);
             setTypeAndMessage('error', 'Lỗi khi cập nhật chi nhánh! Vui lòng thử lại sau!');
         }
+        close(); // Close loading
     };
 
     return (
@@ -161,7 +173,7 @@ const UpdateBranch = () => {
                             className='rounded-sm py-2 w-full outline-none'
                         />
                     </div>
-                    <button type="submit" className='bg-[#D2FF72] text-black rounded-md p-1 mt-5'>Cập nhật</button>
+                    <div className='w-full'>  <button type="submit" className='bg-[#D2FF72] w-full py-2 mb-8 text-xl uppercase font-bold hover:opacity-80 cursor-pointer text-[] text-black rounded-md p-1 mt-5'>Cập nhật</button></div>
                 </form>
             </div>
         </div>

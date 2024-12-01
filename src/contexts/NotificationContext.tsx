@@ -8,15 +8,14 @@ interface NotificationContextType {
     setTypeAndMessage: (type: string, message: string) => void,
 }
 
-const NotificationContextType = createContext<NotificationContextType>({
+const NotificationContext = createContext<NotificationContextType>({
     isShow: false,
-    type: 'success',
-    message: 'Cập nhật thông tin thành công!',
-
+    type: '',
+    message: '',
     close: () => { },
     setTypeAndMessage: () => { },
 });
-export default NotificationContextType;
+export default NotificationContext;
 
 
 // 2. Create a provider to wrap the app with the context
@@ -34,10 +33,10 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
             close();
         }, 3000);
         return () => clearTimeout(timeout);
-    })
+    }, [notification.isShow]);
     return ( // pass the state and the functions to the provider
-        <NotificationContextType.Provider value={{ ...notification, close, setTypeAndMessage }}>
+        <NotificationContext.Provider value={{ ...notification, close, setTypeAndMessage }}>
             {children}
-        </NotificationContextType.Provider>
+        </NotificationContext.Provider>
     )
 }

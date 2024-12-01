@@ -114,6 +114,11 @@ const AdminDashboard = () => {
     useEffect(() => {
         getAllBranches();
     }, [])
+
+    const handleNavigateToStockDetail = (branchId: string) => {
+        navigate(`/quanly/nguyenkiet/chinhanh/${branchId}`);
+    }
+
     return (
         <div className='bg-[#15B392] min-h-screen max-w-screen'>
             <NavigationBar />
@@ -128,7 +133,7 @@ const AdminDashboard = () => {
             <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
                 {branches.map((branch, index) => (
                     <div key={index} className='bg-[rgba(0,0,0,.2)] rounded-md flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
-                        <div onClick={() => handleNavigate("123")} className='bg-white w-full p-2 sm:p-4 rounded-md'>
+                        <div onClick={() => handleNavigateToStockDetail(branch.id)} className='bg-white w-full p-2 sm:p-4 rounded-md'>
                             <div className='w-full h-[100px] sm:h-[200px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
                                 <div className='w-full h-full rounded-md overflow-hidden'>
                                     <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
