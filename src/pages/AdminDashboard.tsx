@@ -13,6 +13,7 @@ import LoadingContext from '../contexts/LoadingContext';
 import { MdDelete } from "react-icons/md";
 import { FaPenToSquare } from "react-icons/fa6";
 import ConfirmContext from '../contexts/ConfirmContext';
+import SideBarOfAdmin from '../components/SideBarOfAdmin';
 // Import Cloudinary SDK
 
 const AdminDashboard = () => {
@@ -39,9 +40,18 @@ const AdminDashboard = () => {
     };
 
     const getAllBranches = async () => {
-        const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
-        const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
-        setBranches(branches);
+        open(); // Open loading
+        try {
+            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
+            const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
+            setBranches(branches);
+            close(); // Close loading
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu chi nhánh:", error);
+            setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
+            close(); // Close loading
+        }
+
     }
 
     // Hàm thêm chi nhánh vào Firestore
@@ -120,97 +130,103 @@ const AdminDashboard = () => {
     }
 
     return (
-        <div className='bg-[#15B392] min-h-screen max-w-screen'>
-            <NavigationBar />
-            <div className="flex justify-center items-center pt-10">
-                <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
-                    <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>TẤT CẢ CHI NHÁNH</span></span></p>
-            </div>
-            <div className='w-full h-fit flex justify-end px-5 pt-5'>
-                <button onClick={handleOpenModal} className='flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
-            </div>
-            {/* onClick={() => handleNavigate("123")} */}
-            <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
-                {branches.map((branch, index) => (
-                    <div key={index} className='bg-[rgba(0,0,0,.2)] rounded-md flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
-                        <div onClick={() => handleNavigateToStockDetail(branch.id)} className='bg-white w-full p-2 sm:p-4 rounded-md'>
-                            <div className='w-full h-[100px] sm:h-[200px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
-                                <div className='w-full h-full rounded-md overflow-hidden'>
-                                    <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
-                                </div></div>
-                        </div>
-                        <span className='text-white font-bold pl-2 text-lg uppercase sm:text-2xl'>{branch.name}</span>
-                        <div className='flex gap-x-4 justify-between w-full px-2 pb-2'>
-                            <button className='text-white font-bold text-2xl hover:text-red-600' onClick={() => handleDeleteBranch(branch.id, branch.branchImagePublicId)}><MdDelete /></button>
-                            <button className='text-white font-bold text-2xl hover:text-yellow-400' onClick={() => handleUpdateBranch(branch.id)}> <FaPenToSquare /> </button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            {isModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-
-                    <div className="relative bg-white p-5 rounded-md shadow-md pt-24 w-[320px] sm:w-[400px] pb-24">
-                        <div className='w-[110%] absolute -left-[5%] -top-[20px] h-[80px] bg-[#15B392] flex justify-center items-center rounded-md shadow-lg'><h2 className="text-xl font-bold text-[#FEEC37] drop-shadow-md">THÊM CHI NHÁNH</h2></div>
-                        <div className='w-[80px] h-[80px] rounded-full bg-[#15b392] absolute -bottom-[50px] flex justify-center items-center '> <div className='w-[40px] h-[40px] bg-[#FEEC37] rounded-full shadow-xl'></div></div>
-                        <div className='w-[100px] h-[100px] rounded-full bg-[#15b392] absolute -bottom-[50px] right-[10px] flex justify-center items-center '> <div className='w-[60px] h-[60px] bg-[#FEEC37] rounded-full  shadow-xl' ></div></div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Tên chi nhánh(<span className='text-red-500'>*</span>)</label>
-                            <input
-                                type="text"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                value={branchName}
-                                onChange={(e) => setBranchName(e.target.value)}
-                            />
-                        </div>
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Mật khẩu(<span className='text-red-500'>*</span>)</label>
-                            <input
-                                type="password"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Mã chi nhánh(<span className='text-red-500'>*</span>)</label>
-                            <input
-                                placeholder="CN***"
-                                type="branchId"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                value={branchId}
-                                onChange={(e) => setBranchId(e.target.value)}
-                            />
-                        </div>
-
-
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Hình ảnh(<span className='text-red-500'>*</span>)</label>
-                            <input
-                                type="file"
-                                className="w-full p-2 border border-gray-300 rounded-md"
-                                onChange={(e) => setImg(e.target.files ? e.target.files[0] : null)}
-                            />
-                        </div>
-
-                        <div className="flex justify-between gap-x-2 pt-2">
-                            <button
-                                className="hover:opacity-80 px-4 py-2 bg-gray-300 rounded-md"
-                                onClick={handleCloseModal}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="hover:opacity-80 px-4 py-2 bg-[#15b392] text-white rounded-md border-[5px] border-solid border-[#73EC8B] shadow-inner"
-                                onClick={handleAddBranch}
-                            >
-                                Thêm
-                            </button>
-                        </div>
-                    </div>
+        <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
+            <SideBarOfAdmin />
+            <div className='sm:basis-[80%]'>
+                <NavigationBar />
+                <div className="flex sm:hidden justify-center items-center pt-10 sm:pt-0 ">
+                    <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] sm:hidden inline-block'></span><span className='w-full bg-[rgba(0,0,0,.5)] sm:bg-transparent sm:text-center flex items-center pl-2 sm:pl-0 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-0'><span className=''>TẤT CẢ CHI NHÁNH</span></span></p>
                 </div>
-            )}
+                <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
+                    <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>TẤT CẢ CHI NHÁNH</h1>
+                </div>
+                <div className='w-full h-fit flex justify-end px-5 pt-5'>
+                    <button onClick={handleOpenModal} className='uppercase flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
+                </div>
+                {/* onClick={() => handleNavigate("123")} */}
+                <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
+                    {branches.map((branch, index) => (
+                        <div key={index} className='sm:bg-[rgba(0,0,0,.5)] bg-[rgba(0,0,0,.2)] flex items-start mb-4 flex-col gap-y-2 group cursor-pointer rounded-md'>
+                            <div onClick={() => handleNavigateToStockDetail(branch.id)} className='bg-white w-full p-2 sm:p-4'>
+                                <div className='w-full h-[100px] sm:h-[200px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
+                                    <div className='w-full h-full rounded-md overflow-hidden'>
+                                        <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
+                                    </div></div>
+                            </div>
+                            <span className='text-white font-bold pl-2 text-lg uppercase sm:text-2xl sm:w-full sm:text-center sm:py-3'>{branch.name}</span>
+                            <div className='flex gap-x-4 justify-between w-full px-2 pb-2'>
+                                <button className='text-white font-bold text-2xl hover:text-red-600' onClick={() => handleDeleteBranch(branch.id, branch.branchImagePublicId)}><MdDelete /></button>
+                                <button className='text-white font-bold text-2xl hover:text-yellow-400' onClick={() => handleUpdateBranch(branch.id)}> <FaPenToSquare /> </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                {isModalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+
+                        <div className="relative bg-white p-5 rounded-md shadow-md pt-24 w-[320px] sm:w-[400px] pb-24">
+                            <div className='w-[110%] absolute -left-[5%] -top-[20px] h-[80px] bg-[#15B392] flex justify-center items-center rounded-md shadow-lg'><h2 className="text-xl font-bold text-[#FEEC37] drop-shadow-md">THÊM CHI NHÁNH</h2></div>
+                            <div className='w-[80px] h-[80px] rounded-full bg-[#15b392] absolute -bottom-[50px] flex justify-center items-center '> <div className='w-[40px] h-[40px] bg-[#FEEC37] rounded-full shadow-xl'></div></div>
+                            <div className='w-[100px] h-[100px] rounded-full bg-[#15b392] absolute -bottom-[50px] right-[10px] flex justify-center items-center '> <div className='w-[60px] h-[60px] bg-[#FEEC37] rounded-full  shadow-xl' ></div></div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">Tên chi nhánh(<span className='text-red-500'>*</span>)</label>
+                                <input
+                                    type="text"
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    value={branchName}
+                                    onChange={(e) => setBranchName(e.target.value)}
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">Mật khẩu(<span className='text-red-500'>*</span>)</label>
+                                <input
+                                    type="password"
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700">Mã chi nhánh(<span className='text-red-500'>*</span>)</label>
+                                <input
+                                    placeholder="CN***"
+                                    type="branchId"
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    value={branchId}
+                                    onChange={(e) => setBranchId(e.target.value)}
+                                />
+                            </div>
+
+
+                            <div className="mb-4">
+                                <label className="block text-gray-700">Hình ảnh(<span className='text-red-500'>*</span>)</label>
+                                <input
+                                    type="file"
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    onChange={(e) => setImg(e.target.files ? e.target.files[0] : null)}
+                                />
+                            </div>
+
+                            <div className="flex justify-between gap-x-2 pt-2">
+                                <button
+                                    className="hover:opacity-80 px-4 py-2 bg-gray-300 rounded-md"
+                                    onClick={handleCloseModal}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="hover:opacity-80 px-4 py-2 bg-[#15b392] text-white rounded-md border-[5px] border-solid border-[#73EC8B] shadow-inner"
+                                    onClick={handleAddBranch}
+                                >
+                                    Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
         </div>
     );
 };

@@ -7,6 +7,7 @@ import ConfirmContext from '../../contexts/ConfirmContext';
 import NotificationContext from '../../contexts/NotificationContext';
 import LoadingContext from '../../contexts/LoadingContext';
 import { doc, updateDoc } from 'firebase/firestore/lite';
+import SideBarOfAdmin from '../../components/SideBarOfAdmin';
 
 const AddStaff = () => {
   const [branchCode, setBranchCode] = useState('');
@@ -221,169 +222,176 @@ const AddStaff = () => {
   };
 
   return (
-    <div className='bg-[#15B392] min-h-screen max-w-screen'>
-      <NavigationBar />
-      <div className="flex justify-center items-center pt-10">
-        <p className='w-full px-5 flex items-center'>
-          <span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
-          <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
-            <span className=''>THÊM NHÂN VIÊN</span>
-          </span>
-        </p>
-      </div>
-      <div className='flex justify-center items-center pt-10'>
-        <form onSubmit={handleSubmit} className='px-6 w-full max-w-md'>
-          {error && <p className='text-red-500 mb-4'>{error}</p>}
-          <div className='mb-4'>
-            <label htmlFor="branchCode" className='block font-medium mb-2 text-white drop-shadow-md'>Mã chi nhánh (<span className='text-red-500'>*</span>)</label>
-            <input
-              placeholder='CN_ _ _'
-              type="text"
-              id="branchCode"
-              value={branchCode}
-              onChange={(e) => setBranchCode(e.target.value)}
-              className='w-full p-3 rounded-sm border border-gray-300 outline-none'
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label htmlFor="staffCode" className='block text-white font-medium mb-2  drop-shadow-md'>Mã nhân viên (<span className='text-red-500'>*</span>)</label>
-            <input
-              placeholder='NV_ _ _'
-              type="text"
-              id="staffCode"
-              value={staffCode}
-              onChange={(e) => setStaffCode(e.target.value)}
-              className='w-full p-3 rounded-sm border border-gray-300 outline-none'
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label htmlFor="staffName" className='block text-white font-medium mb-2 drop-shadow-md'>Tên nhân viên(<span className='text-red-500'>*</span>)</label>
-            <input
-              placeholder='Nhập tên nhân viên...'
-              type="text"
-              id="staffName"
-              value={staffName}
-              onChange={(e) => setStaffName(e.target.value)}
-              className='w-full p-3 rounded-sm border border-gray-300 outline-none'
-              required
-            />
-          </div>
-          <div className='mb-4'>
-            <label htmlFor="password" className='block text-white font-medium mb-2 drop-shadow-md'>Mật khẩu (<span className='text-red-500'>*</span>)</label>
-            <input
-              placeholder='Nhập mật khẩu...'
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className='w-full p-3 rounded-sm border border-gray-300 outline-none'
-              required
-            />
-          </div>
-          <div className='flex justify-end'>
-            <button type="submit" className='hover:opacity-80 bg-white px-6 py-2 font-bold rounded-sm border-solid border-[5px] border-[#73EC8B]'>
-              THÊM
-            </button>
-          </div>
-        </form>
-      </div>
-      <div className="flex justify-center items-center pt-10">
-        <p className='w-full px-5 flex items-center'>
-          <span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
-          <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
-            <span className=''>DANH SÁCH NHÂN VIÊN</span>
-          </span>
-        </p>
-      </div>
-      <div className='px-6 pt-10 pb-6 w-screen overflow-x-auto'>
-        <table className='w-[1024px] bg-white border-gray-300 rounded-md'>
-          <thead>
-            <tr className='bg-slate-200'>
-              <th className='border border-gray-300 px-4 py-2'>Mã CN</th>
-              <th className='border border-gray-300 px-4 py-2'>Mã NV</th>
-              <th className='border border-gray-300 px-4 py-2'>Tên</th>
-              <th className='border border-gray-300 px-4 py-2'>Mật khẩu</th>
-              <th className='border border-gray-300 px-4 py-2'>Ngày gia nhập</th>
-              <th className='border border-gray-300 px-4 py-2'>Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {staffs.map((staff) => (
-              <tr key={staff.id} className='border'>
-                <td className=' border-gray-300 px-4 py-2'>{staff.branchCode}</td>
-                <td className=' border-gray-300 px-4 py-2'>{staff.staffCode}</td>
-                <td className=' border-gray-300 px-4 py-2'>{staff.staffName}</td>
-                <td className=' border-gray-300 px-4 py-2'>{staff.password}</td>
-                <td className=' border-gray-300 px-4 py-2'>{staff.createdAt}</td>
-                <td className='px-4 py-2 flex justify-around items-center gap-x-4'>
-                  <button onClick={() => handleEditStaff(staff)} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
-                  <button onClick={() => handleDeleteStaff(staff.id)} className='text-red-500 hover:text-red-700'><FaTrash /></button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-sm shadow-md w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-center uppercase py-2 text-[#15B392] drop-shadow-md">Cập nhật nhân viên</h2>
-            <form onSubmit={handleUpdateStaff}>
-              {error && <p className='text-red-500 mb-4'>{error}</p>}
-              <div className='mb-4'>
-                <label htmlFor="editBranchCode" className='block text-gray-700 font-medium mb-2'>Mã chi nhánh</label>
-                <input
-                  type="text"
-                  id="editBranchCode"
-                  value={selectedStaff?.branchCode || ''}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, branchCode: e.target.value })}
-                  className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                  required
-                />
-              </div>
-              <div className='mb-4'>
-                <label htmlFor="editStaffCode" className='block text-gray-700 font-medium mb-2'>Mã nhân viên</label>
-                <input
-                  type="text"
-                  id="editStaffCode"
-                  value={selectedStaff?.staffCode || ''}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, staffCode: e.target.value })}
-                  className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                  required
-                />
-              </div>
-              <div className='mb-4'>
-                <label htmlFor="editStaffName" className='block text-gray-700 font-medium mb-2'>Tên nhân viên</label>
-                <input
-                  type="text"
-                  id="editStaffName"
-                  value={selectedStaff?.staffName || ''}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, staffName: e.target.value })}
-                  className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                  required
-                />
-              </div>
-              <div className='mb-4'>
-                <label htmlFor="editPassword" className='block text-gray-700 font-medium mb-2'>Mật khẩu</label>
-                <input
-                  type="password"
-                  id="editPassword"
-                  value={selectedStaff?.password || ''}
-                  onChange={(e) => setSelectedStaff({ ...selectedStaff, password: e.target.value })}
-                  className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                  required
-                />
-              </div>
-              <div className='flex justify-end gap-x-2'>
-                <button type="button" onClick={() => setIsModalOpen(false)} className='px-4 py-2 bg-gray-300 rounded-lg'>Hủy</button>
-                <button type="submit" className='px-4 py-2 bg-[#15B392] text-white rounded-md hover:opacity-80'>Cập nhật</button>
-              </div>
-            </form>
-          </div>
+    <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end overflow-hidden'>
+      <SideBarOfAdmin />
+      <div className='sm:w-[80%]'>
+        <NavigationBar />
+        <div className="sm:hidden flex justify-center items-center pt-10">
+          <p className='w-full px-5 flex items-center'>
+            <span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
+            <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
+              <span className=''>THÊM NHÂN VIÊN</span>
+            </span>
+          </p>
         </div>
-      )}
+        <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
+          <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>THÊM NHÂN VIÊN</h1>
+        </div>
+        <div className='flex justify-center items-center pt-10'>
+          <form onSubmit={handleSubmit} className='px-6 w-full max-w-md'>
+            {error && <p className='text-red-500 mb-4'>{error}</p>}
+            <div className='mb-4'>
+              <label htmlFor="branchCode" className='block font-medium mb-2 text-white drop-shadow-md'>Mã chi nhánh (<span className='text-red-500'>*</span>)</label>
+              <input
+                placeholder='CN_ _ _'
+                type="text"
+                id="branchCode"
+                value={branchCode}
+                onChange={(e) => setBranchCode(e.target.value)}
+                className='w-full p-3 rounded-sm border border-gray-300 outline-none'
+                required
+              />
+            </div>
+            <div className='mb-4'>
+              <label htmlFor="staffCode" className='block text-white font-medium mb-2  drop-shadow-md'>Mã nhân viên (<span className='text-red-500'>*</span>)</label>
+              <input
+                placeholder='NV_ _ _'
+                type="text"
+                id="staffCode"
+                value={staffCode}
+                onChange={(e) => setStaffCode(e.target.value)}
+                className='w-full p-3 rounded-sm border border-gray-300 outline-none'
+                required
+              />
+            </div>
+            <div className='mb-4'>
+              <label htmlFor="staffName" className='block text-white font-medium mb-2 drop-shadow-md'>Tên nhân viên(<span className='text-red-500'>*</span>)</label>
+              <input
+                placeholder='Nhập tên nhân viên...'
+                type="text"
+                id="staffName"
+                value={staffName}
+                onChange={(e) => setStaffName(e.target.value)}
+                className='w-full p-3 rounded-sm border border-gray-300 outline-none'
+                required
+              />
+            </div>
+            <div className='mb-4'>
+              <label htmlFor="password" className='block text-white font-medium mb-2 drop-shadow-md'>Mật khẩu (<span className='text-red-500'>*</span>)</label>
+              <input
+                placeholder='Nhập mật khẩu...'
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className='w-full p-3 rounded-sm border border-gray-300 outline-none'
+                required
+              />
+            </div>
+            <div className='flex justify-end'>
+              <button type="submit" className='hover:opacity-80 bg-white px-6 py-2 font-bold rounded-sm border-solid border-[5px] border-[#73EC8B]'>
+                THÊM
+              </button>
+            </div>
+          </form>
+        </div>
+        <div className="flex justify-center items-center pt-10">
+          <p className='w-full px-5 flex items-center'>
+            <span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
+            <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
+              <span className=''>DANH SÁCH NHÂN VIÊN</span>
+            </span>
+          </p>
+        </div>
+        <div className='px-6 pt-10 pb-6 w-screen overflow-x-auto'>
+          <table className='w-[1024px] bg-white border-gray-300 rounded-md'>
+            <thead>
+              <tr className='bg-slate-200'>
+                <th className='border border-gray-300 px-4 py-2'>Mã CN</th>
+                <th className='border border-gray-300 px-4 py-2'>Mã NV</th>
+                <th className='border border-gray-300 px-4 py-2'>Tên</th>
+                <th className='border border-gray-300 px-4 py-2'>Mật khẩu</th>
+                <th className='border border-gray-300 px-4 py-2'>Ngày gia nhập</th>
+                <th className='border border-gray-300 px-4 py-2'>Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffs.map((staff) => (
+                <tr key={staff.id} className='border'>
+                  <td className=' border-gray-300 px-4 py-2'>{staff.branchCode}</td>
+                  <td className=' border-gray-300 px-4 py-2'>{staff.staffCode}</td>
+                  <td className=' border-gray-300 px-4 py-2'>{staff.staffName}</td>
+                  <td className=' border-gray-300 px-4 py-2'>{staff.password}</td>
+                  <td className=' border-gray-300 px-4 py-2'>{staff.createdAt}</td>
+                  <td className='px-4 py-2 flex justify-around items-center gap-x-4'>
+                    <button onClick={() => handleEditStaff(staff)} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
+                    <button onClick={() => handleDeleteStaff(staff.id)} className='text-red-500 hover:text-red-700'><FaTrash /></button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+            <div className="bg-white p-6 rounded-sm shadow-md w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4 text-center uppercase py-2 text-[#15B392] drop-shadow-md">Cập nhật nhân viên</h2>
+              <form onSubmit={handleUpdateStaff}>
+                {error && <p className='text-red-500 mb-4'>{error}</p>}
+                <div className='mb-4'>
+                  <label htmlFor="editBranchCode" className='block text-gray-700 font-medium mb-2'>Mã chi nhánh</label>
+                  <input
+                    type="text"
+                    id="editBranchCode"
+                    value={selectedStaff?.branchCode || ''}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, branchCode: e.target.value })}
+                    className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                    required
+                  />
+                </div>
+                <div className='mb-4'>
+                  <label htmlFor="editStaffCode" className='block text-gray-700 font-medium mb-2'>Mã nhân viên</label>
+                  <input
+                    type="text"
+                    id="editStaffCode"
+                    value={selectedStaff?.staffCode || ''}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, staffCode: e.target.value })}
+                    className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                    required
+                  />
+                </div>
+                <div className='mb-4'>
+                  <label htmlFor="editStaffName" className='block text-gray-700 font-medium mb-2'>Tên nhân viên</label>
+                  <input
+                    type="text"
+                    id="editStaffName"
+                    value={selectedStaff?.staffName || ''}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, staffName: e.target.value })}
+                    className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                    required
+                  />
+                </div>
+                <div className='mb-4'>
+                  <label htmlFor="editPassword" className='block text-gray-700 font-medium mb-2'>Mật khẩu</label>
+                  <input
+                    type="password"
+                    id="editPassword"
+                    value={selectedStaff?.password || ''}
+                    onChange={(e) => setSelectedStaff({ ...selectedStaff, password: e.target.value })}
+                    className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                    required
+                  />
+                </div>
+                <div className='flex justify-end gap-x-2'>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className='px-4 py-2 bg-gray-300 rounded-lg'>Hủy</button>
+                  <button type="submit" className='px-4 py-2 bg-[#15B392] text-white rounded-md hover:opacity-80'>Cập nhật</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

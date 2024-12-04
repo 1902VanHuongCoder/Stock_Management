@@ -6,6 +6,7 @@ import { FaFileExcel } from "react-icons/fa";
 import { useParams } from 'react-router-dom';
 import { collection, DocumentData, getDocs } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
+import SideBarOfAdmin from '../components/SideBarOfAdmin';
 const StockDetails = () => {
     const { id } = useParams<{ id: string }>();
 
@@ -36,186 +37,191 @@ const StockDetails = () => {
         getAllBranches();
     }, []);
     return (
-        <div className='relative bg-[#15B392] min-h-screen max-w-screen'>
-            <NavigationBar />
-            <div className="flex justify-center items-center pt-10">
-                <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
-                    <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>QUẢN LÝ KHO (01/11/2024)</span></span></p>
-            </div>
-            <div className='w-full h-fit flex justify-end px-5 pt-5'>
-                <button className='flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-white py-2 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
-            </div>
-            <h1 className='w-full text-center text-white pb-5 pt-8 text-xl sm:text-3xl drop-shadow-md font-bold'>KHU CÔNG NGHIỆP</h1>
-            <div className='px-5'>
-                <div className='sm:flex gap-x-5 items-center'>
-                    <div className='mb-4'>
-                        <label htmlFor="branch" className='block text-white font-medium mb-2'>Chọn chi nhánh</label>
-                        <select
-                            id="branch"
-                            value={selectedBranch}
-                            onChange={(e) => setSelectedBranch(e.target.value)}
-                            className='w-full p-3 sm:py-[15px] sm:w-[400px] rounded-lg border border-gray-300 outline-none'
-                        >
-                            <option value="">Chọn chi nhánh</option>
-                            {branches.map((branch) => (
-                                <option key={branch.id} value={branch.id}>{branch.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className='mb-4'>
-                        <label htmlFor="date" className='block text-white font-medium mb-2'>Chọn tháng</label>
-                        <input
-                            type="month"
-                            id="date"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className='w-full p-3  sm:w-[400px] rounded-lg border border-gray-300 outline-none'
-                        />
-                    </div>
+        <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
+            <SideBarOfAdmin />
+            <div className='sm:basis-[80%]'>
+                <NavigationBar />
+                <div className="flex sm:hidden justify-center items-center pt-10">
+                    <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
+                        <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>QUẢN LÝ KHO (01/11/2024)</span></span></p>
                 </div>
-                <p className='block text-white font-medium mb-2'>Số ly tồn kho </p>
-                <div className='flex justify-center sm:justify-start items-center gap-x-2'>
-                    <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
-                        <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                            <p className='sm:text-2xl sm:drop-shadow-lg'>160</p>
-                        </div>
-                        <p className='text-center sm:text-xl'>Ly 500ml size M</p>
-                    </div>
-                    <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
-                        <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                            <p className='sm:text-2xl sm:drop-shadow-lg'>123</p>
-                        </div>
-                        <p className='text-center sm:text-xl'>Ly 700ml size M</p>
-                    </div>
-                    <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
-                        <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                            <p className='sm:text-2xl sm:drop-shadow-lg'>160</p>
-                        </div>
-                        <p className='text-center sm:text-xl'>Ly 800ml size lớn</p>
-                    </div>
+                <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
+                    <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>QUẢN LÝ KHO (01/11/2024)</h1>
                 </div>
-                <div className='pt-5 mt-10 pb-10'>
-                    <div className='flex items-center gap-x-4'>
-                        <button onClick={() => setTab(0)} className={`py-2 px-6 font-bold ${tab === 0 ? 'bg-white' : 'bg-white opacity-80'} border-[4px]  cursor-pointer border-solid border-[#54C392]`}>TAB 01</button>
-                        <button onClick={() => setTab(1)} className={`py-2 px-6 font-bold ${tab === 1 ? 'bg-white' : 'bg-white opacity-80'} border-[4px] cursor-pointer border-solid border-[#54C392]`}>TAB 02</button>
-                    </div>
-                    {tab === 0 && <div className='overflow-x-auto mt-5'>
-                        <table className='min-w-full bg-white'>
-                            <thead className='bg-green-500 text-white'>
-                                <tr>
-                                    <th rowSpan={2} className='border px-4 py-2'>Ngày</th>
-                                    <th colSpan={3} className='border px-4 py-2'>Ly tồn quầy</th>
-                                    <th colSpan={3} className='border px-4 py-2'>Giao thêm</th>
-                                    <th colSpan={3} className='border px-4 py-2'>Tổng có trong ngày</th>
-                                    <th colSpan={3} className='border px-4 py-2'>Tổng bán được</th>
-                                    <th colSpan={3} className='border px-4 py-2'>Ly ép hư</th>
-                                    <th rowSpan={3} className='border px-4 py-2'>Action</th>
-                                </tr>
-                                <tr>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                </tr>
-                            </thead>
-                            <tbody className='text-center'>
-                                {[...Array(31)].map((_, index) => (
-                                    <tr key={index} className={`${index % 2 === 0 ? 'bg-slate-100' : ''}`}>
-                                        <td className='border px-4 py-2'>{index + 1}</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='px-4 py-4 flex justify-around border'>
-                                            <button className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
-                                            <button className='text-red-500 hover:text-red-700'><FaTrash /></button>
-                                        </td>
-                                    </tr>
+                <div className='w-full h-fit flex justify-end px-5 pt-5'>
+                    <button className='flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-white py-2 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80 uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
+                </div>
+                <h1 className='w-full text-center text-white pb-5 pt-8 text-xl sm:text-3xl drop-shadow-md font-bold'>KHU CÔNG NGHIỆP</h1>
+                <div className='px-5'>
+                    <div className='sm:flex gap-x-5 items-center'>
+                        <div className='mb-4'>
+                            <label htmlFor="branch" className='block text-white font-medium mb-2'>Chọn chi nhánh</label>
+                            <select
+                                id="branch"
+                                value={selectedBranch}
+                                onChange={(e) => setSelectedBranch(e.target.value)}
+                                className='w-full p-3 sm:py-[15px] sm:w-[400px] rounded-lg border border-gray-300 outline-none'
+                            >
+                                <option value="">Chọn chi nhánh</option>
+                                {branches.map((branch) => (
+                                    <option key={branch.id} value={branch.id}>{branch.name}</option>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>}
-                    {tab === 1 && <div className='overflow-x-auto mt-10'>
-                        <table className='min-w-full bg-white'>
-                            <thead className='bg-green-500 text-white drop-shadow-lg'>
-                                <tr>
-                                    <th rowSpan={3} className='border px-4 py-2'>Ngày</th>
-                                    <th colSpan={4} className='border px-4 py-2 uppercase'>Báo cáo app</th>
-                                    <th colSpan={9} className='border px-4 py-2 uppercase'>Doanh thu thực tế</th>
-                                    <th rowSpan={3} className='border px-4 py-2'>Báo cáo</th>
-                                    <th rowSpan={3} className='border px-4 py-2'>Cập nhật</th>
-                                </tr>
-                                <tr>
-                                    <th colSpan={3} className='border px-4 py-2'>Số ly</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Số tiền trên app</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Số ly trên máy ép</th>
-                                    <th colSpan={3} className='border px-4 py-2'>Ly thực</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Tổng tiền cuối ngày</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Chi trong ngày</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Vốn</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Doanh thu còn</th>
-                                    <th rowSpan={2} className='border px-4 py-2'>Ghi chú</th>
-                                </tr>
-                                <tr>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                    <th className='border px-4 py-2'>500ml</th>
-                                    <th className='border px-4 py-2'>700ml</th>
-                                    <th className='border px-4 py-2'>800ml</th>
-                                </tr>
-                            </thead>
-                            <tbody className='text-center'>
-                                {[...Array(31)].map((_, index) => (
-                                    <tr key={index} className={`${index % 2 === 0 ? 'bg-slate-100' : ''}`}>
-                                        <td className='border px-4 py-2'>{index + 1}</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
-                                        <td className='border px-4 py-2'>0</td>
+                            </select>
+                        </div>
+                        <div className='mb-4'>
+                            <label htmlFor="date" className='block text-white font-medium mb-2'>Chọn tháng</label>
+                            <input
+                                type="month"
+                                id="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                className='w-full p-3  sm:w-[400px] rounded-lg border border-gray-300 outline-none'
+                            />
+                        </div>
+                    </div>
+                    <p className='block text-white font-medium mb-2'>Số ly tồn kho </p>
+                    <div className='flex justify-center sm:justify-start items-center gap-x-2'>
+                        <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
+                            <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>160</p>
+                            </div>
+                            <p className='text-center sm:text-xl'>Ly 500ml size M</p>
+                        </div>
+                        <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
+                            <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>123</p>
+                            </div>
+                            <p className='text-center sm:text-xl'>Ly 700ml size M</p>
+                        </div>
+                        <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
+                            <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>160</p>
+                            </div>
+                            <p className='text-center sm:text-xl'>Ly 800ml size lớn</p>
+                        </div>
+                    </div>
+                    <div className='pt-5 mt-10 pb-10'>
+                        <div className='flex items-center gap-x-4'>
+                            <button onClick={() => setTab(0)} className={`py-2 px-6 font-bold ${tab === 0 ? 'bg-white' : 'bg-white opacity-80'} border-[4px]  cursor-pointer border-solid border-[#54C392]`}>TAB 01</button>
+                            <button onClick={() => setTab(1)} className={`py-2 px-6 font-bold ${tab === 1 ? 'bg-white' : 'bg-white opacity-80'} border-[4px] cursor-pointer border-solid border-[#54C392]`}>TAB 02</button>
+                        </div>
+                        {tab === 0 && <div className='overflow-x-auto mt-5'>
+                            <table className='min-w-full bg-white'>
+                                <thead className='bg-green-500 text-white'>
+                                    <tr>
+                                        <th rowSpan={2} className='border px-4 py-2'>Ngày</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Ly tồn quầy</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Giao thêm</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Tổng có trong ngày</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Tổng bán được</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Ly ép hư</th>
+                                        <th rowSpan={3} className='border px-4 py-2'>Action</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>}
+                                    <tr>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                    </tr>
+                                </thead>
+                                <tbody className='text-center'>
+                                    {[...Array(31)].map((_, index) => (
+                                        <tr key={index} className={`${index % 2 === 0 ? 'bg-slate-100' : ''}`}>
+                                            <td className='border px-4 py-2'>{index + 1}</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='px-4 py-4 flex justify-around border'>
+                                                <button className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
+                                                <button className='text-red-500 hover:text-red-700'><FaTrash /></button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>}
+                        {tab === 1 && <div className='overflow-x-auto mt-10'>
+                            <table className='min-w-full bg-white'>
+                                <thead className='bg-green-500 text-white drop-shadow-lg'>
+                                    <tr>
+                                        <th rowSpan={3} className='border px-4 py-2'>Ngày</th>
+                                        <th colSpan={4} className='border px-4 py-2 uppercase'>Báo cáo app</th>
+                                        <th colSpan={9} className='border px-4 py-2 uppercase'>Doanh thu thực tế</th>
+                                        <th rowSpan={3} className='border px-4 py-2'>Báo cáo</th>
+                                        <th rowSpan={3} className='border px-4 py-2'>Cập nhật</th>
+                                    </tr>
+                                    <tr>
+                                        <th colSpan={3} className='border px-4 py-2'>Số ly</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Số tiền trên app</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Số ly trên máy ép</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Ly thực</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Tổng tiền cuối ngày</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Chi trong ngày</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Vốn</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Doanh thu còn</th>
+                                        <th rowSpan={2} className='border px-4 py-2'>Ghi chú</th>
+                                    </tr>
+                                    <tr>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                        <th className='border px-4 py-2'>500ml</th>
+                                        <th className='border px-4 py-2'>700ml</th>
+                                        <th className='border px-4 py-2'>800ml</th>
+                                    </tr>
+                                </thead>
+                                <tbody className='text-center'>
+                                    {[...Array(31)].map((_, index) => (
+                                        <tr key={index} className={`${index % 2 === 0 ? 'bg-slate-100' : ''}`}>
+                                            <td className='border px-4 py-2'>{index + 1}</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'>0</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>}
+                    </div>
                 </div>
-            </div>
 
-            {/* Create modal for reviewing report */}
-            {/* <div className='w-screen h-screen fixed top-0 left-0 flex justify-center items-center'>
+                {/* Create modal for reviewing report */}
+                {/* <div className='w-screen h-screen fixed top-0 left-0 flex justify-center items-center'>
                 <div className='w-full sm:w-[700px] h-fit bg-white p-4 sm:p-6 border-[2px] border-dashed border-slate-500'>
                     <h2 className='text-center font-bold text-2xl text-[#15B392] drop-shadow-md pt-2 pb-6'>BÁO CÁO</h2>
                     <p className='pb-4 flex justify-between'><span>KHU CÔNG NGHIỆP</span><span>01/11/2024</span></p>
@@ -282,7 +288,7 @@ const StockDetails = () => {
                     </div>
                 </div>
             </div> */}
-            {/* <div className='w-screen h-screen fixed top-0 left-0 flex justify-center items-center'>
+                {/* <div className='w-screen h-screen fixed top-0 left-0 flex justify-center items-center'>
                 <div className='w-full sm:w-[900px] h-fit bg-white p-4 sm:p-6 border-[2px] border-dashed border-slate-500'>
                     <h2 className='text-center font-bold text-2xl text-[#15B392] drop-shadow-md pt-2 pb-6'>CẬP NHẬT BÁO CÁO</h2>
                     <p className='pb-4 flex justify-between'><span>KHU CÔNG NGHIỆP</span><span>01/11/2024</span></p>
@@ -348,6 +354,8 @@ const StockDetails = () => {
                     </div>
                 </div>
             </div> */}
+            </div>
+
         </div>
     );
 };

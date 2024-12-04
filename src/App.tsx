@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 // import { useContext } from 'react';
 // import SideBarContext from './contexts/SideBarContext';
-import { ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
+import { ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
 
 const App = () => {
   // const navigate = useNavigate();
@@ -37,6 +37,8 @@ const App = () => {
 
           <Route path="/dangnhap" element={<AdminDashboard />} />
           <Route path="/employee" element={<EmployeeDashboard />} />
+
+          <Route path="*" element={<ErrorPage />} /> {/* Catch-all route */}
         </Routes>
 
       </AuthProvider>
