@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react';
 import { NavigationBar } from '../helpers';
-import { FaEdit, FaPenAlt, FaTrash } from "react-icons/fa";
-import { ButtonToHome } from '../components/ButtonToHome';
-import { FaFileExcel } from "react-icons/fa";
-import { useParams } from 'react-router-dom';
+import { FaEdit, FaEye, FaPenAlt, FaTrash } from "react-icons/fa";
+// import { useParams } from 'react-router-dom';
 import { collection, DocumentData, getDocs } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
 import SideBarOfAdmin from '../components/SideBarOfAdmin';
+import UpdateRemainStock from '../components/UpdateRemainStock';
+import ReportModal from '../components/ReportModal';
+import UpdateReportModal from '../components/UpdateReportModal';
+import { FaPenToSquare } from 'react-icons/fa6';
 const StockDetails = () => {
-    const { id } = useParams<{ id: string }>();
+    // const { id } = useParams<{ id: string }>();
 
     const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
     const [branches, setBranches] = useState<DocumentData[]>([]);
-    console.log(branches);
-    const [report, setReport] = useState({
-        noOnForcingMachine: 0,
-        total: 0,
-        moneyUsed: 0,
-        initialMoney: 0,
-    });
-    const [tab, setTab] = useState(0);
+    const [showUpdateRemainStockModal, setShowUpdateRemainStockModal] = useState(false); // State to control modal for updating stock
+    const [showViewReportModal, setShowViewReportModal] = useState(false); // State to control modal for viewing report
+    const [showUpdateReportModal, setShowUpdateReportModal] = useState(false); // State to control modal for updating report
 
+    const [tab, setTab] = useState(0);
 
 
     useEffect(() => {
@@ -43,12 +41,12 @@ const StockDetails = () => {
                 <NavigationBar />
                 <div className="flex sm:hidden justify-center items-center pt-10">
                     <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
-                        <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>QUẢN LÝ KHO (01/11/2024)</span></span></p>
+                        <span className='w-full flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>QUẢN LÝ KHO (01/11/2024)</span></span></p>
                 </div>
                 <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
-                    <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>QUẢN LÝ KHO (01/11/2024)</h1>
+                    <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>QUẢN LÝ KHO (01/11/2024)</h1>
                 </div>
-                <div className='w-full h-fit flex justify-end px-5 pt-5'>
+                <div onClick={() => { setShowUpdateRemainStockModal(true) }} className='w-full h-fit flex justify-end px-5 pt-5'>
                     <button className='flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-white py-2 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80 uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
                 </div>
                 <h1 className='w-full text-center text-white pb-5 pt-8 text-xl sm:text-3xl drop-shadow-md font-bold'>KHU CÔNG NGHIỆP</h1>
@@ -107,7 +105,7 @@ const StockDetails = () => {
                         </div>
                         {tab === 0 && <div className='overflow-x-auto mt-5'>
                             <table className='min-w-full bg-white'>
-                                <thead className='bg-green-500 text-white'>
+                                <thead className='bg-[rgb(8,110,89)] text-white'>
                                     <tr>
                                         <th rowSpan={2} className='border px-4 py-2'>Ngày</th>
                                         <th colSpan={3} className='border px-4 py-2'>Ly tồn quầy</th>
@@ -138,22 +136,22 @@ const StockDetails = () => {
                                 <tbody className='text-center'>
                                     {[...Array(31)].map((_, index) => (
                                         <tr key={index} className={`${index % 2 === 0 ? 'bg-slate-100' : ''}`}>
-                                            <td className='border px-4 py-2'>{index + 1}</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4'>{index + 1}</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
+                                            <td className='border px-4'>0</td>
                                             <td className='px-4 py-4 flex justify-around border'>
                                                 <button className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
                                                 <button className='text-red-500 hover:text-red-700'><FaTrash /></button>
@@ -165,7 +163,7 @@ const StockDetails = () => {
                         </div>}
                         {tab === 1 && <div className='overflow-x-auto mt-10'>
                             <table className='min-w-full bg-white'>
-                                <thead className='bg-green-500 text-white drop-shadow-lg'>
+                                <thead className='bg-[rgb(8,110,89)] text-white drop-shadow-lg'>
                                     <tr>
                                         <th rowSpan={3} className='border px-4 py-2'>Ngày</th>
                                         <th colSpan={4} className='border px-4 py-2 uppercase'>Báo cáo app</th>
@@ -210,8 +208,8 @@ const StockDetails = () => {
                                             <td className='border px-4 py-2'>0</td>
                                             <td className='border px-4 py-2'>0</td>
                                             <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'>0</td>
+                                            <td className='border px-4 py-2'><span className='flex justify-center items-center text-[#15B392]' onClick={() => { setShowViewReportModal(true) }}><FaEye /></span></td>
+                                            <td className='border px-4 py-2'><span className='flex justify-center items-center text-[#dfca2b]' onClick={() => { setShowUpdateReportModal(true) }}><FaPenToSquare /></span></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -219,141 +217,9 @@ const StockDetails = () => {
                         </div>}
                     </div>
                 </div>
-
-                {/* Create modal for reviewing report */}
-                {/* <div className='w-screen h-screen fixed top-0 left-0 flex justify-center items-center'>
-                <div className='w-full sm:w-[700px] h-fit bg-white p-4 sm:p-6 border-[2px] border-dashed border-slate-500'>
-                    <h2 className='text-center font-bold text-2xl text-[#15B392] drop-shadow-md pt-2 pb-6'>BÁO CÁO</h2>
-                    <p className='pb-4 flex justify-between'><span>KHU CÔNG NGHIỆP</span><span>01/11/2024</span></p>
-                    <div>
-                        <table className="min-w-full bg-white border border-gray-300">
-                            <thead className="bg-slate-200">
-                                <tr>
-                                    <th className="border border-gray-300 px-2 sm:px-4 py-2">Mục</th>
-                                    <th className="border border-gray-300 px-2 sm:px-4 py-2">App</th>
-                                    <th className="border border-gray-300 px-2 sm:px-4 py-2">Thực tế</th>
-                                    <th className="border border-gray-300 px-2 sm:px-4 py-2">Chênh lệch</th>
-                                    <th className="border border-gray-300 px-2 sm:px-4 py-2">Thành tiền</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly M(500ml)</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2"></td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">100</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">5000</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">500000</td>
-                                </tr>
-                                <tr>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly L(700ml)</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly 700ml</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">100</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">7000</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">700000</td>
-                                </tr>
-                                <tr>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly 800ml</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly 800ml</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">100</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">8000</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">800000</td>
-                                </tr>
-                                <tr>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Số tiền</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly 800ml</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">100</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">8000</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">800000</td>
-                                </tr>
-                                <tr>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Máy ép</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">Ly 800ml</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">100</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">8000</td>
-                                    <td className="border border-gray-300 px-2 sm:px-4 py-2">800000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className='pt-5'>
-                        <p className='font-bold'>KẾT LUẬN:</p>
-                        <div>
-                            <p>Bấm thiếu 03 ly M: <span className='font-bold text-lg text-red-500'>60.000</span> VND</p>
-                            <p>Bấm thiếu 01 ly M: <span className='font-bold text-lg text-red-500'>10.000</span> VND</p>
-                            <p>Thiếu 03 ly M: <span className='font-bold text-lg text-red-500'>60.000</span> VND</p>
-                        </div>
-                    </div>
-                    <div className='pt-5 pb-2 flex justify-end'>
-                        <button className='px-6 py-2 bg-[#15B392] rounded-md text-white text-lg hover:opacity-80 transition-all'>Đóng</button>
-                    </div>
-                </div>
-            </div> */}
-                {/* <div className='w-screen h-screen fixed top-0 left-0 flex justify-center items-center'>
-                <div className='w-full sm:w-[900px] h-fit bg-white p-4 sm:p-6 border-[2px] border-dashed border-slate-500'>
-                    <h2 className='text-center font-bold text-2xl text-[#15B392] drop-shadow-md pt-2 pb-6'>CẬP NHẬT BÁO CÁO</h2>
-                    <p className='pb-4 flex justify-between'><span>KHU CÔNG NGHIỆP</span><span>01/11/2024</span></p>
-                    <div>
-                        <form>
-                            <div className="flex gap-x-3 flex-col sm:flex-row">
-                                <div className='mb-4'>
-                                    <label htmlFor="noOnForcingMachine" className='block font-medium text-black mb-2'>Số ly trên máy ép <span className='text-red-500'>(*)</span></label>
-                                    <input
-                                        type="number"
-                                        id="noOnForcingMachine"
-                                        value={report.noOnForcingMachine}
-                                        onChange={(e) => setReport({ ...report, noOnForcingMachine: parseInt(e.target.value) })}
-                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                        required
-                                    />
-                                </div>
-                                <div className='mb-4'>
-                                    <label htmlFor="total" className='block font-medium text-black mb-2'>Tổng tiền cuối ngày <span className='text-red-500'>(*)</span></label>
-                                    <input
-                                        type="number"
-                                        id="total"
-                                        value={report.total}
-                                        onChange={(e) => setReport({ ...report, total: parseInt(e.target.value) })}
-                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                        required
-                                    />
-                                </div>
-                                <div className='mb-4'>
-                                    <label htmlFor="moneyUsed" className='block font-medium text-black mb-2'>Chi trong ngày <span className='text-red-500'>(*)</span></label>
-                                    <input
-                                        type="number"
-                                        id="moneyUsed"
-                                        value={report.moneyUsed}
-                                        onChange={(e) => setReport({ ...report, moneyUsed: parseInt(e.target.value) })}
-                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                        required
-                                    />
-                                </div>
-                                <div className='mb-4'>
-                                    <label htmlFor="initialMoney" className='block font-medium text-black mb-2'>Vốn <span className='text-red-500'>(*)</span></label>
-                                    <input
-                                        type="number"
-                                        id="initialMoney"
-                                        value={report.initialMoney}
-                                        onChange={(e) => setReport({ ...report, initialMoney: parseInt(e.target.value) })}
-                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                        required
-                                    />
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div>
-                        <p className='font-bold'>Chọn FILE báo cáo</p>
-                        <div className='mt-2 text-4xl text-green-600 bg-slate-200 w-fit p-4 rounded-lg shadow-md border-[2px] border-dashed border-slate-900'>
-                            <FaFileExcel />
-                        </div>
-                    </div>
-                    <div className='pt-8 pb-2 flex justify-between'>
-                        <button className='px-6 py-2 rounded-md border-[2px] border-solid border-red-500 text-red-500 text-lg hover:opacity-80 transition-all'>Đóng</button>
-                        <button className='px-6 py-2 bg-[#15B392] rounded-md text-white text-lg hover:opacity-80 transition-all'>Cập nhật</button>
-                    </div>
-                </div>
-            </div> */}
+                {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} />}
+                {showViewReportModal && <ReportModal closeModal={() => setShowViewReportModal(false)} />}
+                {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} />}
             </div>
 
         </div>

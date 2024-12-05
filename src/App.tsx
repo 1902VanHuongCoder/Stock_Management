@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 // import { useContext } from 'react';
 // import SideBarContext from './contexts/SideBarContext';
 import { ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
+import ApprovePage from './pages/ApprovePage';
 
 const App = () => {
   // const navigate = useNavigate();
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="/nhanvien/capnhattonkho" element={<AddStockInfo />} />
           <Route path="/quanly/themnhanvien" element={<AddStaff />} />
           <Route path="/quanly/capnhatchinhanh/:id" element={<UpdateBranch />} />
+          <Route path="/quanly/duyetthongtin" element={<ApprovePage />} />
           <Route path="/nhanvien/kho" element={<StaffDashboard />} />
 
           <Route path="/dangnhap" element={<AdminDashboard />} />

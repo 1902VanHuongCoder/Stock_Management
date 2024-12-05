@@ -1,5 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
-import { Loading, NavigationBar } from '../helpers';
+import { NavigationBar } from '../helpers';
 import { FaPlusCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
 // import { db } from ''; // Đảm bảo import đúng file cấu hình Firestore
@@ -7,7 +7,6 @@ import { collection, addDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
 import { uploadImage } from '../cloudinary';
 import { DocumentData, getDocs } from 'firebase/firestore/lite';
-import { deleteDoc, doc } from 'firebase/firestore/lite';
 import NotificationContextType from '../contexts/NotificationContext';
 import LoadingContext from '../contexts/LoadingContext';
 import { MdDelete } from "react-icons/md";
@@ -18,9 +17,6 @@ import SideBarOfAdmin from '../components/SideBarOfAdmin';
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); // Hook for navigation
-    const handleNavigate = (branchId: string) => {
-        navigate(`/quanly/nguyenkiet/chinhanh/${branchId}`);
-    }
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [branchName, setBranchName] = useState('');
@@ -138,7 +134,7 @@ const AdminDashboard = () => {
                     <p className='w-full px-5 flex items-center'><span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] sm:hidden inline-block'></span><span className='w-full bg-[rgba(0,0,0,.5)] sm:bg-transparent sm:text-center flex items-center pl-2 sm:pl-0 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-0'><span className=''>TẤT CẢ CHI NHÁNH</span></span></p>
                 </div>
                 <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
-                    <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>TẤT CẢ CHI NHÁNH</h1>
+                    <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>TẤT CẢ CHI NHÁNH</h1>
                 </div>
                 <div className='w-full h-fit flex justify-end px-5 pt-5'>
                     <button onClick={handleOpenModal} className='uppercase flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
@@ -146,10 +142,10 @@ const AdminDashboard = () => {
                 {/* onClick={() => handleNavigate("123")} */}
                 <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
                     {branches.map((branch, index) => (
-                        <div key={index} className='sm:bg-[rgba(0,0,0,.5)] bg-[rgba(0,0,0,.2)] flex items-start mb-4 flex-col gap-y-2 group cursor-pointer rounded-md'>
-                            <div onClick={() => handleNavigateToStockDetail(branch.id)} className='bg-white w-full p-2 sm:p-4'>
-                                <div className='w-full h-[100px] sm:h-[200px] p-2 bg-[#73EC8D] shadow-2xl rounded-md overflow-hidden'>
-                                    <div className='w-full h-full rounded-md overflow-hidden'>
+                        <div key={index} className='sm:bg-[rgba(0,0,0,.5)] bg-[rgba(0,0,0,.2)] flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
+                            <div onClick={() => handleNavigateToStockDetail(branch.id)} className='bg-white w-full p-2 sm:p-2 border-solid border-[rgba(0,0,0,.5)] border-[2px]'>
+                                <div className='w-full h-[100px] sm:h-[200px] p-2 d overflow-hidden border-solid border-[1px] border-slate-300 shadow-md'>
+                                    <div className='w-full h-full overflow-hidden'>
                                         <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
                                     </div></div>
                             </div>

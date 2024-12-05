@@ -1,16 +1,9 @@
 import { useState } from 'react';
 import { NavigationBar } from '../../helpers';
 import { FaEdit, FaPenAlt, FaTrash } from "react-icons/fa";
-import { FaFileExcel } from "react-icons/fa";
 const StaffDashboard = () => {
     const [selectedBranch, setSelectedBranch] = useState('');
     const [selectedDate, setSelectedDate] = useState('');
-    const [report, setReport] = useState({
-        noOnForcingMachine: 0,
-        total: 0,
-        moneyUsed: 0,
-        initialMoney: 0,
-    });
     const [tab, setTab] = useState(0);
 
     const branches = [

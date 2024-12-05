@@ -126,7 +126,7 @@ const UpdateBranch = () => {
                     </p>
                 </div>
                 <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
-                    <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>CẬP NHẬT CHI NHÁNH</h1>
+                    <h1 className='text-4xl font-bold text-white drop-shadow-md  h-full flex justify-center items-center uppercase'>CẬP NHẬT CHI NHÁNH</h1>
                 </div>
                 <div className='px-6 sm:flex sm:justify-center'>
                     <form onSubmit={handleUpdate} className='flex flex-col justify-center items-center sm:w-[600px]'>

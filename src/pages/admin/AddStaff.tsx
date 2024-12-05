@@ -229,13 +229,13 @@ const AddStaff = () => {
         <div className="sm:hidden flex justify-center items-center pt-10">
           <p className='w-full px-5 flex items-center'>
             <span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
-            <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
+            <span className='w-full  flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
               <span className=''>THÊM NHÂN VIÊN</span>
             </span>
           </p>
         </div>
         <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
-          <h1 className='text-4xl font-bold text-white drop-shadow-md bg-[rgba(0,0,0,.5)] h-full flex justify-center items-center uppercase'>THÊM NHÂN VIÊN</h1>
+          <h1 className='text-4xl font-bold text-white drop-shadow-md  h-full flex justify-center items-center uppercase'>THÊM NHÂN VIÊN</h1>
         </div>
         <div className='flex justify-center items-center pt-10'>
           <form onSubmit={handleSubmit} className='px-6 w-full max-w-md'>
@@ -334,7 +334,7 @@ const AddStaff = () => {
         </div>
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
-            <div className="bg-white p-6 rounded-sm shadow-md w-full max-w-md">
+            <div className="bg-white p-6 rounded-sm shadow-md w-full max-w-md border-[2px] border-dashed border-slate-500">
               <h2 className="text-xl font-bold mb-4 text-center uppercase py-2 text-[#15B392] drop-shadow-md">Cập nhật nhân viên</h2>
               <form onSubmit={handleUpdateStaff}>
                 {error && <p className='text-red-500 mb-4'>{error}</p>}

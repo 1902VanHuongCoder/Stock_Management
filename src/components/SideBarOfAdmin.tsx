@@ -3,6 +3,7 @@ import { IoHome } from "react-icons/io5";
 import { BsFillPeopleFill } from "react-icons/bs";
 import { RiLogoutBoxLine } from 'react-icons/ri';
 import { useNavigate } from 'react-router-dom';
+import { FaBell } from 'react-icons/fa';
 const SideBarOfAdmin = () => {
     const navigate = useNavigate();
     const handleNavigate = (path: string) => {
@@ -20,6 +21,7 @@ const SideBarOfAdmin = () => {
                     <span className=''>TRANG CHỦ</span>
                 </div>
                 <div onClick={() => handleNavigate("/quanly/themnhanvien")} className='cursor-pointer flex items-center gap-x-2 px-4 py-4 font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><BsFillPeopleFill /></span><span>THÊM NHÂN VIÊN</span></div>
+                <div onClick={() => handleNavigate("/quanly/duyetthongtin")} className='cursor-pointer flex items-center gap-x-2 px-4 py-4 font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><FaBell /></span><span>THÔNG BÁO</span></div>
                 {/* <div className='cursor-pointer flex items-center gap-x-2 h-[40px] px-4  font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><FaBuilding /></span><span>THÊM CHI NHÁNH    </span></div> */}
             </div>
             <div className="px-6 py-5 border-t-[1px] border-white"><button className="flex items-center gap-x-2 h-[40px] px-4 bg-white rounded-md font-bold hover:bg-[#15B392] hover:text-white transition-all hover:border-[2px] hover:border-white"><RiLogoutBoxLine />ĐĂNG XUẤT</button></div>
