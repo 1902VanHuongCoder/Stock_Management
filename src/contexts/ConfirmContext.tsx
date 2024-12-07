@@ -7,7 +7,7 @@ interface ConfirmContextType {
     isOpen: boolean;
     title: string;
     idToDelete: string; // Id of the item to delete
-    collection: string; // Collection of the item to delete 
+    collectionToDelete: string; // Collection of the item to delete 
     setDataToDelete: (title: string, id: string, collection: string) => void; // Function to show the confirm dialog
     cancle: () => void; // Function to close the confirm dialog
     deleteItem: () => void; // Function to delete the item
@@ -17,11 +17,10 @@ const ConfirmContext = createContext<ConfirmContextType>({
     isOpen: false,
     title: "",
     idToDelete: "",
-    collection: "",
+    collectionToDelete: "",
     setDataToDelete: () => { }
     , cancle: () => { },
-    deleteItem: () => { }
-
+    deleteItem: () => { },
 }) // Create a context with default values
 
 export default ConfirmContext;
@@ -31,12 +30,12 @@ export const ConfirmProvider = ({ children }: { children: React.ReactNode }) => 
     const [isOpen, setIsOpen] = useState(false);
     const [title, setTitle] = useState("");
     const [idToDelete, setIdToDelete] = useState("");
-    const [collection, setCollection] = useState("");
+    const [collectionToDelete, setCollection] = useState("");
 
-    const setDataToDelete = (title: string, id: string, collection: string) => {  // Function to show the confirm dialog
+    const setDataToDelete = (title: string, id: string, collectionToDelete: string) => {  // Function to show the confirm dialog
         setTitle(title);
         setIdToDelete(id);
-        setCollection(collection);
+        setCollection(collectionToDelete);
         setIsOpen(true);
     }
 
@@ -46,20 +45,20 @@ export const ConfirmProvider = ({ children }: { children: React.ReactNode }) => 
         setIdToDelete("");
         setCollection("");
     }
+
     const deleteItem = async () => {
-        // Code to delete the item
         try {
-            await deleteDoc(doc(db, collection, idToDelete));
+            await deleteDoc(doc(db, collectionToDelete, idToDelete));
             setTypeAndMessage('success', 'Xóa mục thành công!');
             window.location.reload();
         } catch (error) {
             console.log(error);
             setTypeAndMessage('fail', 'Lỗi trong quá trình xóa mục này! Hãy thử lại sau!');
         }
-    }
+    };
 
     return (
-        <ConfirmContext.Provider value={{ deleteItem, cancle, isOpen, title, idToDelete, collection, setDataToDelete }}>
+        <ConfirmContext.Provider value={{ deleteItem, cancle, isOpen, title, idToDelete, collectionToDelete, setDataToDelete }}>
             {children}
         </ConfirmContext.Provider>
     )

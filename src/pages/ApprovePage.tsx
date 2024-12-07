@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { doc, getDoc, updateDoc } from 'firebase/firestore/lite';
+// import React, { useState, useEffect, useContext } from 'react';
+// import { useNavigate, useParams } from 'react-router-dom';
+// import { doc, getDoc, updateDoc } from 'firebase/firestore/lite';
 import SideBarOfAdmin from '../components/SideBarOfAdmin';
 import { NavigationBar } from '../helpers';
 
@@ -21,8 +21,8 @@ const ApprovePage = () => {
                 <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
                     <h1 className='text-4xl font-bold text-white drop-shadow-md  h-full flex justify-center items-center uppercase'>DUYỆT THÔNG TIN DO NHÂN VIÊN CẬP NHẬT</h1>
                 </div>
-                <div className='w-full p-4 '>
-                    <div className='w-full bg-white h-fit flex justify-between border-[2px] border-dashed border-slate-500 py-4 px-4 text-[14px]'>
+                <div className='w-full p-4 flex flex-col gap-y-4'>
+                    <div className='w-full bg-white h-fit flex flex-col gap-y-4 sm:flex-row justify-between border-[2px] border-dashed border-slate-500 py-4 px-4 text-[14px]'>
                         <p className='flex flex-col gap-y-1'><span>Nhân viên</span><span className="font-bold">Tô Văn Hưởng</span></p>
                         <p className='flex flex-col gap-y-1'><span>Chi nhánh</span><span className="font-bold">Cần Thơ</span></p>
                         <p className='flex flex-col gap-y-1'><span>Ngày</span><span className="font-bold">05/12/2024</span></p>
@@ -50,9 +50,9 @@ const ApprovePage = () => {
                                 <p><span>800ml: </span><span>192</span></p>
                             </div>
                         </div>
-                        <div className='flex flex-col gap-y-1'>
-                            <button>Duyệt</button>
-                            <button>Từ chối</button>
+                        <div className='flex flex-row sm:flex-col gap-x-4 justify-end sm:justify-center gap-y-1 '>
+                            <button className='text-green-500'>Duyệt</button>
+                            <button className='text-red-500'>Từ chối</button>
                         </div>
                     </div>
                 </div>

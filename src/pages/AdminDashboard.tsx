@@ -75,6 +75,7 @@ const AdminDashboard = () => {
                 createdAt: new Date().toISOString(),
                 branchId: branchId
             });
+
             const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
             const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
             setBranches(branches);

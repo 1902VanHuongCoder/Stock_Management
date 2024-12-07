@@ -30,7 +30,7 @@ const App = () => {
           <Route path="/nhanvien/dangnhap" element={<NLogin />} />
           <Route path="/home" element={<Home />} />
           <Route path="/quanly/nguyenkiet" element={<AdminDashboard />} />
-          <Route path="/quanly/nguyenkiet/chinhanh/:id" element={<StockDetails />} />
+          <Route path="/quanly/nguyenkiet/chinhanh/:branchId" element={<StockDetails />} />
           <Route path="/nhanvien/capnhattonkho" element={<AddStockInfo />} />
           <Route path="/quanly/themnhanvien" element={<AddStaff />} />
           <Route path="/quanly/capnhatchinhanh/:id" element={<UpdateBranch />} />
