@@ -9,7 +9,7 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
 
     const { branchId } = useParams<{ branchId: string }>();
 
-    const [selectedDay, setSelectedDay] = useState('');
+    const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [days, setDays] = useState<number[]>([]);
     const { setTypeAndMessage } = useContext(NotificationContext);
 
@@ -42,10 +42,17 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
             const currentYear = today.getFullYear();
             const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
             const documentId = `${branchId}${currentYear}${currentMonth}`;
-
             const docRef = doc(db, 'stocks', documentId);
+            const whetherStockExists = await getDoc(docRef);
 
-
+            if (whetherStockExists.exists()) {
+                const data = whetherStockExists.data();
+                if (data[selectedDay] !== undefined) {
+                    console.log("Document does not exist!");
+                    setTypeAndMessage('fail', 'Thông tin kho vào ngày này đã được cập nhật! Hãy sửa thông tin kho!');
+                    return; // Stop the function
+                }
+            }
             const noCupsLeftInTheStore = { '500ml': 0, '700ml': 0, '800ml': 0 };
 
             if (selectedDay === '1' && currentMonth !== '01') {
@@ -88,7 +95,6 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
                     while (previousDayData === undefined || previousDayData.noCupsLeftInTheStore === undefined) {
                         previousDay -= 1;
                         previousDayData = data[`${previousDay}`];
-                        console.log(previousDay);
                     }
 
                     noCupsLeftInTheStore['500ml'] = previousDayData.noCupsLeftInTheStore['500ml'];
@@ -151,11 +157,61 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
                     [selectedDay]: newEntry
                 });
             }
+
+            if (parseInt(selectedDay) < new Date().getDate()) {
+                console.log("Ngay ban chonj nho hon ngay hien tai");
+                handleUpdateAfterDay(documentId);
+            }
+
+
             setTypeAndMessage('success', 'Cập nhật tồn kho thành công!');
         } catch (error) {
             console.log(error);
             setTypeAndMessage('fail', 'Lỗi trong quá trình cập nhật tồn kho! Hãy thử lại sau!');
         }
+    }
+
+    const handleUpdateAfterDay = async (documentId: string) => {
+        const docRef = doc(db, 'stocks', documentId);
+        try {
+            const dataSnapshot = await getDoc(docRef);
+            if (dataSnapshot.exists()) {
+                const data = dataSnapshot.data();
+                let afterDay = parseInt(selectedDay) + 1;
+                let dataToUpdate;
+                while (data[`${afterDay}`] === undefined && afterDay <= 31) {
+                    afterDay += 1;
+                    dataToUpdate = data[`${afterDay}`];
+                }
+
+                if (dataToUpdate !== undefined) {
+                    console.log(dataToUpdate);
+
+                    const totalNoCupsPerDay = {
+                        '500ml': dataToUpdate.deliveryMore['500ml'] + noGlassInDay.cups500ml,
+                        '700ml': dataToUpdate.deliveryMore['700ml'] + noGlassInDay.cups700ml,
+                        '800ml': dataToUpdate.deliveryMore['800ml'] + noGlassInDay.cups800ml
+                    }
+
+                    const totalCupsSole = {
+                        '500ml': totalNoCupsPerDay['500ml'] - dataToUpdate.noCupsLeftInTheStore['500ml'] - dataToUpdate.breakGlass['500ml'],
+                        '700ml': totalNoCupsPerDay['700ml'] - dataToUpdate.noCupsLeftInTheStore['700ml'] - dataToUpdate.breakGlass['700ml'],
+                        '800ml': totalNoCupsPerDay['800ml'] - dataToUpdate.noCupsLeftInTheStore['800ml'] - dataToUpdate.breakGlass['800ml']
+                    }
+
+                    await updateDoc(docRef, {
+                        [afterDay.toString()]: {
+                            ...dataToUpdate, totalNoCupsPerDay, totalCupsSole
+                        }
+                    });
+                }
+
+            }
+        } catch (error) {
+            console.log(error);
+        }
+
+
     }
 
 

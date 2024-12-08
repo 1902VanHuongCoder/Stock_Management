@@ -12,6 +12,7 @@ import { FaPenToSquare } from 'react-icons/fa6';
 import { useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore/lite';
 import ModifyStockDataInADay from '../components/ModifyStockDataInADay';
+import { all } from 'axios';
 const StockDetails = () => {
     const { branchId } = useParams<{ branchId: string }>();
 
@@ -38,6 +39,8 @@ const StockDetails = () => {
     const [allStockDataInAMonth, setAllStockDataInAMonth] = useState<[string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }][]>([]);
     const [tab, setTab] = useState(0);
 
+    console.log(allStockDataInAMonth);
+
     const fetchStockData = async () => {
         const today = new Date();
         const currentYear = today.getFullYear();
@@ -51,10 +54,9 @@ const StockDetails = () => {
             const data = docSnap.data();
             const allData = Object.entries(data);
             setAllStockDataInAMonth(allData);
-            const lastDay = Object.keys(data).length;
-            const lastDayData = data[`${lastDay}`];
-            const entriesArray = Object.entries(lastDayData);
-            setNoCupsLeftInTheStore(entriesArray[0][1] as { '500ml': number; '700ml': number; '800ml': number });
+            const lastDay = allData.length;
+            const lastDayData = allData[lastDay - 1][1];
+            setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
         }
     }
 
@@ -148,8 +150,9 @@ const StockDetails = () => {
                                         <th colSpan={3} className='border px-4 py-2'>Ly tồn quầy</th>
                                         <th colSpan={3} className='border px-4 py-2'>Giao thêm</th>
                                         <th colSpan={3} className='border px-4 py-2'>Tổng có trong ngày</th>
-                                        <th colSpan={3} className='border px-4 py-2'>Tổng bán được</th>
                                         <th colSpan={3} className='border px-4 py-2'>Ly ép hư</th>
+                                        <th colSpan={3} className='border px-4 py-2'>Tổng bán được</th>
+
                                         <th rowSpan={3} className='border px-4 py-2'>Action</th>
                                     </tr>
                                     <tr>
@@ -184,12 +187,13 @@ const StockDetails = () => {
                                                 <td className='border px-4 py-2'>{data[1].totalNoCupsPerDay['500ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].totalNoCupsPerDay['700ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].totalNoCupsPerDay['800ml']}</td>
-                                                <td className='border px-4 py-2'>{data[1].totalCupsSole['500ml']}</td>
-                                                <td className='border px-4 py-2'>{data[1].totalCupsSole['700ml']}</td>
-                                                <td className='border px-4 py-2'>{data[1].totalCupsSole['800ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].breakGlass['500ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].breakGlass['700ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].breakGlass['800ml']}</td>
+                                                <td className='border px-4 py-2 bg-red-300'>{data[1].totalCupsSole['500ml']}</td>
+                                                <td className='border px-4 py-2 bg-red-300'>{data[1].totalCupsSole['700ml']}</td>
+                                                <td className='border px-4 py-2 bg-red-300'>{data[1].totalCupsSole['800ml']}</td>
+
                                                 <td className='px-4 py-4 flex justify-around border'>
                                                     <button onClick={() => { setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: true, currentData: data[1], dayToModify: data[0] }) }} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
                                                     <button className='text-red-500 hover:text-red-700'><FaTrash /></button>

@@ -55,11 +55,12 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
         return null;
     }
 
-    console.log(monthToModify, yearToModify, dayToModify);
+    console.log("Ngay de sua: ", dayToModify);
 
     const handleModifyStockData = async () => {
         if (currentData.noCupsLeftInTheStore['500ml'] !== noGlassInDay.cups500ml || currentData.noCupsLeftInTheStore['700ml'] !== noGlassInDay.cups700ml || currentData.noCupsLeftInTheStore['800ml'] !== noGlassInDay.cups800ml) {
-            const afterDay = parseInt(dayToModify) + 1;
+            console.log("Con lai trong ngay Run");
+
             const documentId = `${branchId}${yearToModify}${monthToModify}`;
             const stockDataRef = doc(db, 'stocks', documentId);
 
@@ -68,7 +69,13 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
 
                 if (stockDataDoc.exists()) {
                     const stockData = stockDataDoc.data();
-                    const stockDataOfTheDayAfter = stockData[afterDay.toString()];
+                    let afterDay = parseInt(dayToModify) + 1;
+                    let stockDataOfTheDayAfter = stockData[afterDay.toString()];
+
+                    while (stockDataOfTheDayAfter === undefined && afterDay < 32) {
+                        afterDay++;
+                        stockDataOfTheDayAfter = stockData[afterDay.toString()];
+                    }
 
                     const totalNoCupsPerDay = {
                         '500ml': stockDataOfTheDayAfter.deliveryMore['500ml'] + noGlassInDay.cups500ml,
@@ -84,21 +91,17 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
 
                     await updateDoc(stockDataRef, {
                         [afterDay.toString()]: {
-                            ...stockDataOfTheDayAfter, totalCupsSole: totalCupsSole
+                            ...stockDataOfTheDayAfter, totalNoCupsPerDay: totalNoCupsPerDay, totalCupsSole: totalCupsSole
                         }
                     });
 
                     await updateDoc(stockDataRef, {
                         [dayToModify]: {
-                            noCupsLeftInTheStore: {
+                            ...currentData, noCupsLeftInTheStore: {
                                 '500ml': noGlassInDay.cups500ml,
                                 '700ml': noGlassInDay.cups700ml,
                                 '800ml': noGlassInDay.cups800ml
-                            },
-                            breakGlass: currentData.breakGlass,
-                            deliveryMore: currentData.deliveryMore,
-                            totalNoCupsPerDay: totalNoCupsPerDay,
-                            totalCupsSole: totalCupsSole,
+                            }
                         }
                     });
                 }
@@ -111,7 +114,7 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
         if (currentData.deliveryMore['500ml'] !== deliveryMore.cups500ml || currentData.deliveryMore['700ml'] !== deliveryMore.cups700ml || currentData.deliveryMore['800ml'] !== deliveryMore.cups800ml || currentData.breakGlass['500ml'] !== breakGlass.cups500ml || currentData.breakGlass['700ml'] !== breakGlass.cups700ml || currentData.breakGlass['800ml'] !== breakGlass.cups800ml) {
             const documentId = `${branchId}${yearToModify}${monthToModify}`;
             const stockDataRef = doc(db, 'stocks', documentId);
-
+            console.log(" 2 run ");
             try {
                 const noCupsLeftInTheStoreBefore = {
                     '500ml': currentData.totalNoCupsPerDay['500ml'] - currentData.deliveryMore['500ml'], // 500 = 9 
