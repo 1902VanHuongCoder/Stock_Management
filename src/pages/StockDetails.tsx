@@ -9,29 +9,66 @@ import UpdateRemainStock from '../components/UpdateRemainStock';
 import ReportModal from '../components/ReportModal';
 import UpdateReportModal from '../components/UpdateReportModal';
 import { FaPenToSquare } from 'react-icons/fa6';
+import { useParams } from 'react-router-dom';
+import { doc, getDoc } from 'firebase/firestore/lite';
+import ModifyStockDataInADay from '../components/ModifyStockDataInADay';
 const StockDetails = () => {
-    // const { id } = useParams<{ id: string }>();
+    const { branchId } = useParams<{ branchId: string }>();
 
     const [selectedBranch, setSelectedBranch] = useState('');
-    const [selectedDate, setSelectedDate] = useState('');
+    const [selectedDate, setSelectedDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
     const [branches, setBranches] = useState<DocumentData[]>([]);
     const [showUpdateRemainStockModal, setShowUpdateRemainStockModal] = useState(false); // State to control modal for updating stock
     const [showViewReportModal, setShowViewReportModal] = useState(false); // State to control modal for viewing report
     const [showUpdateReportModal, setShowUpdateReportModal] = useState(false); // State to control modal for updating report
-
+    const [modifyStockDataInADay, setModifyStockDataInADay] = useState({
+        showModal: false,
+        currentData: {
+            noCupsLeftInTheStore: { '500ml': 0, '700ml': 0, '800ml': 0 },
+            deliveryMore: { '500ml': 0, '700ml': 0, '800ml': 0 },
+            totalNoCupsPerDay: { '500ml': 0, '700ml': 0, '800ml': 0 },
+            totalCupsSole: { '500ml': 0, '700ml': 0, '800ml': 0 },
+            breakGlass: { '500ml': 0, '700ml': 0, '800ml': 0 }
+        },
+        dayToModify: "",
+        monthToModify: selectedDate.slice(-2),
+        yearToModify: selectedDate.slice(0, 4)
+    }); // State to control modal for modifying stock data in a day
+    const [noCupsLeftInTheStore, setNoCupsLeftInTheStore] = useState({ '500ml': 0, '700ml': 0, '800ml': 0 });
+    const [allStockDataInAMonth, setAllStockDataInAMonth] = useState<[string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }][]>([]);
     const [tab, setTab] = useState(0);
+
+    const fetchStockData = async () => {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
+        const documentId = `${branchId}${currentYear}${currentMonth}`;
+
+        const docRef = doc(db, 'stocks', documentId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            const allData = Object.entries(data);
+            setAllStockDataInAMonth(allData);
+            const lastDay = Object.keys(data).length;
+            const lastDayData = data[`${lastDay}`];
+            const entriesArray = Object.entries(lastDayData);
+            setNoCupsLeftInTheStore(entriesArray[0][1] as { '500ml': number; '700ml': number; '800ml': number });
+        }
+    }
 
 
     useEffect(() => {
         const getAllBranches = async () => {
-            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
+            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore 
             const branches = querySnapshot.docs.map((doc) => {
                 const data = doc.data();
                 return { id: doc.id, name: data.name };
             }); // Map data from Firestore to branches array
             setBranches(branches);
         }
-
+        fetchStockData();
         getAllBranches();
     }, []);
     return (
@@ -81,19 +118,19 @@ const StockDetails = () => {
                     <div className='flex justify-center sm:justify-start items-center gap-x-2'>
                         <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
                             <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                                <p className='sm:text-2xl sm:drop-shadow-lg'>160</p>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>{noCupsLeftInTheStore['500ml']}</p>
                             </div>
                             <p className='text-center sm:text-xl'>Ly 500ml size M</p>
                         </div>
                         <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
                             <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                                <p className='sm:text-2xl sm:drop-shadow-lg'>123</p>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>{noCupsLeftInTheStore['700ml']}</p>
                             </div>
                             <p className='text-center sm:text-xl'>Ly 700ml size M</p>
                         </div>
                         <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
                             <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                                <p className='sm:text-2xl sm:drop-shadow-lg'>160</p>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>{noCupsLeftInTheStore['800ml']}</p>
                             </div>
                             <p className='text-center sm:text-xl'>Ly 800ml size lớn</p>
                         </div>
@@ -134,30 +171,32 @@ const StockDetails = () => {
                                     </tr>
                                 </thead>
                                 <tbody className='text-center'>
-                                    {[...Array(31)].map((_, index) => (
-                                        <tr key={index} className={`${index % 2 === 0 ? 'bg-slate-100' : ''}`}>
-                                            <td className='border px-4'>{index + 1}</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='border px-4'>0</td>
-                                            <td className='px-4 py-4 flex justify-around border'>
-                                                <button className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
-                                                <button className='text-red-500 hover:text-red-700'><FaTrash /></button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                    {allStockDataInAMonth.length > 0 ? allStockDataInAMonth.map((data: [string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }]) => {
+                                        return (
+                                            <tr key={data[0]} className='bg-slate-100'>
+                                                <td className='border px-4 py-2'>{data[0]}</td>
+                                                <td className='border px-4 py-2'>{data[1].noCupsLeftInTheStore['500ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].noCupsLeftInTheStore['700ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].noCupsLeftInTheStore['800ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].deliveryMore['500ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].deliveryMore['700ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].deliveryMore['800ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].totalNoCupsPerDay['500ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].totalNoCupsPerDay['700ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].totalNoCupsPerDay['800ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].totalCupsSole['500ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].totalCupsSole['700ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].totalCupsSole['800ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].breakGlass['500ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].breakGlass['700ml']}</td>
+                                                <td className='border px-4 py-2'>{data[1].breakGlass['800ml']}</td>
+                                                <td className='px-4 py-4 flex justify-around border'>
+                                                    <button onClick={() => { setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: true, currentData: data[1], dayToModify: data[0] }) }} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
+                                                    <button className='text-red-500 hover:text-red-700'><FaTrash /></button>
+                                                </td>
+                                            </tr>
+                                        )
+                                    }) : <tr className='bg-slate-100 text-center '>Chưa có dữ liệu</tr>}
                                 </tbody>
                             </table>
                         </div>}
@@ -220,6 +259,7 @@ const StockDetails = () => {
                 {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} />}
                 {showViewReportModal && <ReportModal closeModal={() => setShowViewReportModal(false)} />}
                 {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} />}
+                {modifyStockDataInADay.showModal && <ModifyStockDataInADay currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
             </div>
 
         </div>
