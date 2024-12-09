@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { NavigationBar } from '../helpers';
 import { FaEdit, FaEye, FaPenAlt, FaTrash } from "react-icons/fa";
 // import { useParams } from 'react-router-dom';
@@ -12,11 +12,12 @@ import { FaPenToSquare } from 'react-icons/fa6';
 import { useParams } from 'react-router-dom';
 import { doc, getDoc } from 'firebase/firestore/lite';
 import ModifyStockDataInADay from '../components/ModifyStockDataInADay';
-import { all } from 'axios';
+import LoadingContext from '../contexts/LoadingContext';
+import NotificationContext from '../contexts/NotificationContext';
 const StockDetails = () => {
     const { branchId } = useParams<{ branchId: string }>();
-
-    const [selectedBranch, setSelectedBranch] = useState('');
+    const [selectedBranch, setSelectedBranch] = useState(branchId || '');
+    const [nameOfBranch, setNameOfBranch] = useState('');
     const [selectedDate, setSelectedDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
     const [branches, setBranches] = useState<DocumentData[]>([]);
     const [showUpdateRemainStockModal, setShowUpdateRemainStockModal] = useState(false); // State to control modal for updating stock
@@ -38,8 +39,37 @@ const StockDetails = () => {
     const [noCupsLeftInTheStore, setNoCupsLeftInTheStore] = useState({ '500ml': 0, '700ml': 0, '800ml': 0 });
     const [allStockDataInAMonth, setAllStockDataInAMonth] = useState<[string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }][]>([]);
     const [tab, setTab] = useState(0);
+    const { open, close } = useContext(LoadingContext);
+    const { setTypeAndMessage } = useContext(NotificationContext);
 
-    console.log(allStockDataInAMonth);
+    const handleChosingBranchAndDate = async () => {
+        open();
+        const month = selectedDate.slice(-2);
+        const year = selectedDate.slice(0, 4);
+        const documentId = `${selectedBranch}${year}${month}`;
+
+        const docRef = doc(db, 'stocks', documentId);
+        try {
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+
+                console.log("Dữ liệu tương ứng với documentId tồn tại!");
+
+                const data = docSnap.data();
+                const allData = Object.entries(data);
+                setAllStockDataInAMonth(allData);
+                const lastDay = allData.length;
+                const lastDayData = allData[lastDay - 1][1];
+                setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
+            }
+            close();
+        } catch (error) {
+            console.error("Error getting documents: ", error);
+            close();
+            setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
+        }
+
+    }
 
     const fetchStockData = async () => {
         const today = new Date();
@@ -48,31 +78,59 @@ const StockDetails = () => {
         const documentId = `${branchId}${currentYear}${currentMonth}`;
 
         const docRef = doc(db, 'stocks', documentId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const allData = Object.entries(data);
-            setAllStockDataInAMonth(allData);
-            const lastDay = allData.length;
-            const lastDayData = allData[lastDay - 1][1];
-            setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
+        try {
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                const allData = Object.entries(data);
+                setAllStockDataInAMonth(allData);
+                const lastDay = allData.length;
+                const lastDayData = allData[lastDay - 1][1];
+                setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
+            }
+        } catch (error) {
+            console.error("Error getting documents: ", error);
+            setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
         }
+
     }
 
 
     useEffect(() => {
         const getAllBranches = async () => {
-            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore 
-            const branches = querySnapshot.docs.map((doc) => {
-                const data = doc.data();
-                return { id: doc.id, name: data.name };
-            }); // Map data from Firestore to branches array
-            setBranches(branches);
+            try {
+                const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore 
+                const branches = querySnapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return { id: doc.id, name: data.name };
+                }); // Map data from Firestore to branches array
+                setBranches(branches);
+            } catch (error) {
+                setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
+                console.error("Error getting documents: ", error);
+
+            }
+
         }
         fetchStockData();
         getAllBranches();
     }, []);
+
+    useEffect(() => {
+        branches.forEach((branch) => {
+            if (selectedBranch === '') {
+                if (branch.id === branchId) {
+                    setNameOfBranch(branch.name);
+                }
+            } else {
+                if (branch.id === selectedBranch) {
+                    setNameOfBranch(branch.name);
+                }
+            }
+        });
+    }, [selectedBranch, branchId, branches]);
+
+
     return (
         <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
             <SideBarOfAdmin />
@@ -83,12 +141,12 @@ const StockDetails = () => {
                         <span className='w-full flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'><span className=''>QUẢN LÝ KHO (01/11/2024)</span></span></p>
                 </div>
                 <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
-                    <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>QUẢN LÝ KHO (01/11/2024)</h1>
+                    <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>QUẢN LÝ KHO</h1>
                 </div>
                 <div onClick={() => { setShowUpdateRemainStockModal(true) }} className='w-full h-fit flex justify-end px-5 pt-5'>
                     <button className='flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-white py-2 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80 uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
                 </div>
-                <h1 className='w-full text-center text-white pb-5 pt-8 text-xl sm:text-3xl drop-shadow-md font-bold'>KHU CÔNG NGHIỆP</h1>
+                <h1 className='w-full text-center text-white pb-5 pt-8 text-xl sm:text-3xl drop-shadow-md font-bold uppercase'>QUẦY {nameOfBranch}</h1>
                 <div className='px-5'>
                     <div className='sm:flex gap-x-5 items-center'>
                         <div className='mb-4'>
@@ -114,6 +172,9 @@ const StockDetails = () => {
                                 onChange={(e) => setSelectedDate(e.target.value)}
                                 className='w-full p-3  sm:w-[400px] rounded-lg border border-gray-300 outline-none'
                             />
+                        </div>
+                        <div className='flex justify-end sm:items-end sm:h-[65px]'>
+                            <button onClick={handleChosingBranchAndDate} className='px-5 py-4 rounded-md mb-5 sm:mb-0 bg-[#FFEC59] font-bold hover:opacity-80'>Hiển thị</button>
                         </div>
                     </div>
                     <p className='block text-white font-medium mb-2'>Số ly tồn kho </p>
@@ -260,10 +321,10 @@ const StockDetails = () => {
                         </div>}
                     </div>
                 </div>
-                {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} />}
+                {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} yearAndMonthToUpdate={selectedDate} selectedBranch={selectedBranch} />}
                 {showViewReportModal && <ReportModal closeModal={() => setShowViewReportModal(false)} />}
                 {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} />}
-                {modifyStockDataInADay.showModal && <ModifyStockDataInADay currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
+                {modifyStockDataInADay.showModal && <ModifyStockDataInADay branchId={selectedBranch} currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
             </div>
 
         </div>

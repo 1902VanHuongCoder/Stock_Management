@@ -1,17 +1,19 @@
 import { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom';
 import NotificationContext from '../contexts/NotificationContext';
 import { doc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
 import { getDoc, setDoc, updateDoc } from 'firebase/firestore/lite';
+import LoadingContext from '../contexts/LoadingContext';
 
-const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
+const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }: { closeModal: () => void, yearAndMonthToUpdate: string, selectedBranch: string }) => {
 
-    const { branchId } = useParams<{ branchId: string }>();
+    console.log("Năm và tháng cần cập nhật: " + yearAndMonthToUpdate);
+    console.log("Chi nhánh được chọn: " + selectedBranch);
 
     const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [days, setDays] = useState<number[]>([]);
     const { setTypeAndMessage } = useContext(NotificationContext);
+    const { open, close } = useContext(LoadingContext);
 
     const [noGlassInDay, setNoGlassInDay] = useState({
         cups500ml: 0,
@@ -37,11 +39,14 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
 
 
     const handleUpdateStock = async () => {
+        open();
         try {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-            const documentId = `${branchId}${currentYear}${currentMonth}`;
+            const year = yearAndMonthToUpdate.slice(0, 4);
+            const month = yearAndMonthToUpdate.slice(-2);
+            const documentId = `${selectedBranch}${year}${month}`;
+
+            console.log("Chi nhanh duoc chon de cap nhat:" + selectedBranch);
+
             const docRef = doc(db, 'stocks', documentId);
             const whetherStockExists = await getDoc(docRef);
 
@@ -50,14 +55,15 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
                 if (data[selectedDay] !== undefined) {
                     console.log("Document does not exist!");
                     setTypeAndMessage('fail', 'Thông tin kho vào ngày này đã được cập nhật! Hãy sửa thông tin kho!');
+                    close();
                     return; // Stop the function
                 }
             }
             const noCupsLeftInTheStore = { '500ml': 0, '700ml': 0, '800ml': 0 };
 
-            if (selectedDay === '1' && currentMonth !== '01') {
-                const previousMonth = String(today.getMonth()).padStart(2, '0');
-                const documentIdOfPreviousMonth = `${branchId}${currentYear}${previousMonth}`;
+            if (selectedDay === '1' && month !== '01') {
+                const previousMonth = String(parseInt(month) - 1).padStart(2, '0');
+                const documentIdOfPreviousMonth = `${selectedBranch}${year}${previousMonth}`;
                 const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
 
                 const docSnapOfPreviousMonth = await getDoc(docRefOfPreviousMonth);
@@ -69,10 +75,10 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
                     noCupsLeftInTheStore['700ml'] = previousMonthLastDayData.noCupsLeftInTheStore['700ml'];
                     noCupsLeftInTheStore['800ml'] = previousMonthLastDayData.noCupsLeftInTheStore['800ml'];
                 }
-            } else if (selectedDay === '1' && currentMonth === '01') {
-                const previousYear = today.getFullYear() - 1;
+            } else if (selectedDay === '1' && month === '01') {
+                const previousYear = parseInt(year) - 1;
                 const previousMonth = '12';
-                const documentIdOfPreviousMonth = `${branchId}${previousYear}${previousMonth}`;
+                const documentIdOfPreviousMonth = `${selectedBranch}${previousYear}${previousMonth}`;
                 const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
 
                 const docSnapOfPreviousMonth = await getDoc(docRefOfPreviousMonth);
@@ -163,15 +169,17 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
                 handleUpdateAfterDay(documentId);
             }
 
-
+            close();
             setTypeAndMessage('success', 'Cập nhật tồn kho thành công!');
         } catch (error) {
             console.log(error);
+            close();
             setTypeAndMessage('fail', 'Lỗi trong quá trình cập nhật tồn kho! Hãy thử lại sau!');
         }
     }
 
     const handleUpdateAfterDay = async (documentId: string) => {
+        open(); // Open the loading spinner
         const docRef = doc(db, 'stocks', documentId);
         try {
             const dataSnapshot = await getDoc(docRef);
@@ -207,8 +215,10 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
                 }
 
             }
+            close(); // Close the loading spinner
         } catch (error) {
             console.log(error);
+            close(); // Close the loading spinner
         }
 
 
@@ -220,7 +230,6 @@ const UpdateRemainStock = ({ closeModal }: { closeModal: () => void }) => {
         const currentDay = today.getDate();
         const daysArray = Array.from({ length: currentDay }, (_, i) => i + 1);
         setDays(daysArray);
-
     }, []);
 
     return (
