@@ -31,7 +31,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     useEffect(() => {
         const timeout = setTimeout(() => {
             close();
-        }, 3000);
+        }, 4000);
         return () => clearTimeout(timeout);
     }, [notification.isShow]);
     return ( // pass the state and the functions to the provider

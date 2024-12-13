@@ -96,13 +96,19 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
                         });
                     }
                 }
+                const totalCupsSole = {
+                    '500ml': currentData.totalNoCupsPerDay['500ml'] - noGlassInDay.cups500ml,
+                    '700ml': currentData.totalNoCupsPerDay['700ml'] - noGlassInDay.cups700ml,
+                    '800ml': currentData.totalNoCupsPerDay['800ml'] - noGlassInDay.cups800ml
+                }
+
                 await updateDoc(stockDataRef, {
                     [dayToModify]: {
                         ...currentData, noCupsLeftInTheStore: {
                             '500ml': noGlassInDay.cups500ml,
                             '700ml': noGlassInDay.cups700ml,
                             '800ml': noGlassInDay.cups800ml
-                        }
+                        }, totalCupsSole: totalCupsSole
                     }
                 });
                 close();

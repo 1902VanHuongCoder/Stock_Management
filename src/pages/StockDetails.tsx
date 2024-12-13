@@ -52,23 +52,24 @@ const StockDetails = () => {
         try {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-
-                console.log("Dữ liệu tương ứng với documentId tồn tại!");
-
                 const data = docSnap.data();
                 const allData = Object.entries(data);
                 setAllStockDataInAMonth(allData);
                 const lastDay = allData.length;
                 const lastDayData = allData[lastDay - 1][1];
                 setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
+                close();
+            } else {
+                setAllStockDataInAMonth([]);
+                setNoCupsLeftInTheStore({ '500ml': 0, '700ml': 0, '800ml': 0 });
+                close();
+                setTypeAndMessage('fail', 'Không có dữ liệu cho tháng này. Hãy cập nhật tồn kho cho tháng này!');
             }
-            close();
         } catch (error) {
             console.error("Error getting documents: ", error);
             close();
             setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
         }
-
     }
 
     const fetchStockData = async () => {
