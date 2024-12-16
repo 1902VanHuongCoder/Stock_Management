@@ -209,15 +209,24 @@ const StockDetails = () => {
                 };
 
                 const documentIdToUpdate = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+                // const documentIdToUpdate = `${selectedBranch}${year}${month}`;
 
                 const docRefToUpdate = doc(db, 'stocks', documentIdToUpdate);
 
                 try {
-                    if (yearToUpdate === year && monthToUpdate === month) {
+                    if (yearToUpdate === year && monthToUpdate === month) { // 
                         const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
                         await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
+
+                        console.log("yearToUpdate === year && monthToUpdate === month");
+
                     } else {
+                        const documentContainsElementIsDeleted = `${selectedBranch}${year}${month}`;
+                        const docRefToDelete = doc(db, 'stocks', documentContainsElementIsDeleted);
+                        const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
+                        await setDoc(docRefToDelete, Object.fromEntries(newAllStockDataInAMonth));
                         await setDoc(docRefToUpdate, newStockData);
+
                     }
                     alert("Cap nhat ngay sau ngay bi xoa thanh cong");
                 } catch (error) {
@@ -252,11 +261,22 @@ const StockDetails = () => {
 
                 const documentIdToUpdate = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
                 const docRefToUpdate = doc(db, 'stocks', documentIdToUpdate);
-                if (yearToUpdate === year && monthToUpdate === month) {
-                    const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
-                    await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
-                } else {
-                    await setDoc(docRefToUpdate, newStockData);
+                try {
+                    if (yearToUpdate === year && monthToUpdate === month) { // 
+                        const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
+                        await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
+
+                    } else {
+                        const documentContainsElementIsDeleted = `${selectedBranch}${year}${month}`;
+                        const docRefToDelete = doc(db, 'stocks', documentContainsElementIsDeleted);
+                        const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
+                        await setDoc(docRefToDelete, Object.fromEntries(newAllStockDataInAMonth));
+                        await setDoc(docRefToUpdate, newStockData);
+
+                    }
+                } catch (error) {
+                    console.error("Error getting documents: ", error);
+                    setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
                 }
                 alert("Cap nhat ngay sau ngay bi xoa thanh cong");
             } else {
@@ -435,7 +455,9 @@ const StockDetails = () => {
                                                 <td className='border px-4 py-2 bg-red-300'>{data[1].totalCupsSole['800ml']}</td>
 
                                                 <td className='px-4 py-4 flex justify-around border'>
-                                                    <button onClick={() => { setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: true, currentData: data[1], dayToModify: data[0] }) }} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
+                                                    {/* monthToModify: selectedDate.slice(-2),
+                                                    yearToModify: selectedDate.slice(0, 4) */}
+                                                    <button onClick={() => { setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: true, currentData: data[1], dayToModify: data[0], monthToModify: selectedDate.slice(-2), yearToModify: selectedDate.slice(0, 4) }) }} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
                                                     <button onClick={() => handleDeleteStockDataInOneDay(data[0])} className='text-red-500 hover:text-red-700'><FaTrash /></button>
                                                 </td>
                                             </tr>
