@@ -229,6 +229,9 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
                     }
                 }
 
+                console.log("Có ngày hôm sau để cập nhật không?", data[`${afterDay}`] !== undefined);
+                console.log("Ngay de cap nhat la:", afterDay, "-", monthToUpdate, "-", yearToUpdate);
+
                 if (data[`${afterDay}`] !== undefined) {
                     const totalNoCupsPerDay = {
                         '500ml': data[`${afterDay}`].deliveryMore['500ml'] + noGlassInDay.cups500ml,
@@ -240,7 +243,17 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
                         '700ml': totalNoCupsPerDay['700ml'] - data[`${afterDay}`].noCupsLeftInTheStore['700ml'] - data[`${afterDay}`].breakGlass['700ml'],
                         '800ml': totalNoCupsPerDay['800ml'] - data[`${afterDay}`].noCupsLeftInTheStore['800ml'] - data[`${afterDay}`].breakGlass['800ml']
                     }
-                    await updateDoc(docRef, {
+
+
+                    const newRef = doc(db, 'stocks', `${selectedBranch}${yearToUpdate}${monthToUpdate}`);
+
+                    console.log("DocumentId của ngày sau ngày cập nhập", `${selectedBranch}${yearToUpdate}${monthToUpdate}`);
+
+                    console.log("Dữ liệu mới để cập nhật cho ngày 16", {
+                        ...data[`${afterDay}`], totalNoCupsPerDay, totalCupsSole
+                    })
+
+                    await updateDoc(newRef, {
                         [afterDay.toString()]: {
                             ...data[`${afterDay}`], totalNoCupsPerDay, totalCupsSole
                         }
