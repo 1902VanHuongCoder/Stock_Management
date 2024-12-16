@@ -6,10 +6,6 @@ import { getDoc, setDoc, updateDoc } from 'firebase/firestore/lite';
 import LoadingContext from '../contexts/LoadingContext';
 
 const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }: { closeModal: () => void, yearAndMonthToUpdate: string, selectedBranch: string }) => {
-
-    console.log("Năm và tháng cần cập nhật: " + yearAndMonthToUpdate);
-    console.log("Chi nhánh được chọn: " + selectedBranch);
-
     const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [days, setDays] = useState<number[]>([]);
     const { setTypeAndMessage } = useContext(NotificationContext);
@@ -45,67 +41,75 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
             const month = yearAndMonthToUpdate.slice(-2);
             const documentId = `${selectedBranch}${year}${month}`;
 
-            console.log("Chi nhanh duoc chon de cap nhat:" + selectedBranch);
-
             const docRef = doc(db, 'stocks', documentId);
             const whetherStockExists = await getDoc(docRef);
 
+            let data;
+
             if (whetherStockExists.exists()) {
-                const data = whetherStockExists.data();
+                data = whetherStockExists.data();
                 if (data[selectedDay] !== undefined) {
-                    console.log("Document does not exist!");
                     setTypeAndMessage('fail', 'Thông tin kho vào ngày này đã được cập nhật! Hãy sửa thông tin kho!');
                     close();
                     return; // Stop the function
                 }
             }
+
             const noCupsLeftInTheStore = { '500ml': 0, '700ml': 0, '800ml': 0 };
 
-            if (selectedDay === '1' && month !== '01') {
-                const previousMonth = String(parseInt(month) - 1).padStart(2, '0');
-                const documentIdOfPreviousMonth = `${selectedBranch}${year}${previousMonth}`;
-                const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
+            let flagToStopLoop = 0;
+            let monthToAccessData = month; // Default month to access data is the selected month
+            let yearToAccessData = parseInt(year); // Default year to access data is the selected 
+            let previousDay = parseInt(selectedDay); // Default previous day to access data is the selected day
 
-                const docSnapOfPreviousMonth = await getDoc(docRefOfPreviousMonth);
-                if (docSnapOfPreviousMonth.exists()) {
-                    const data = docSnapOfPreviousMonth.data();
-                    const previousMonthLastDay = Object.keys(data).length;
-                    const previousMonthLastDayData = data[`${previousMonthLastDay}`];
-                    noCupsLeftInTheStore['500ml'] = previousMonthLastDayData.noCupsLeftInTheStore['500ml'];
-                    noCupsLeftInTheStore['700ml'] = previousMonthLastDayData.noCupsLeftInTheStore['700ml'];
-                    noCupsLeftInTheStore['800ml'] = previousMonthLastDayData.noCupsLeftInTheStore['800ml'];
-                }
-            } else if (selectedDay === '1' && month === '01') {
-                const previousYear = parseInt(year) - 1;
-                const previousMonth = '12';
-                const documentIdOfPreviousMonth = `${selectedBranch}${previousYear}${previousMonth}`;
-                const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
+            while (noCupsLeftInTheStore['500ml'] === 0 && noCupsLeftInTheStore['700ml'] === 0 && noCupsLeftInTheStore['800ml'] === 0 && flagToStopLoop < 2) {
+                console.log(previousDay);
+                if (selectedDay === '1' || previousDay < 1 && month !== '01') {
+                    monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0');
+                    const documentIdOfPreviousMonth = `${selectedBranch}${year}${monthToAccessData}`;
+                    const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
 
-                const docSnapOfPreviousMonth = await getDoc(docRefOfPreviousMonth);
-                if (docSnapOfPreviousMonth.exists()) {
-                    const data = docSnapOfPreviousMonth.data();
-                    const previousMonthLastDay = Object.keys(data).length;
-                    const previousMonthLastDayData = data[`${previousMonthLastDay}`];
-                    noCupsLeftInTheStore['500ml'] = previousMonthLastDayData.noCupsLeftInTheStore['500ml'];
-                    noCupsLeftInTheStore['700ml'] = previousMonthLastDayData.noCupsLeftInTheStore['700ml'];
-                    noCupsLeftInTheStore['800ml'] = previousMonthLastDayData.noCupsLeftInTheStore['800ml'];
-                }
-            }
-            else {
-                const docSnap = await getDoc(docRef);
+                    const docSnapOfPreviousMonth = await getDoc(docRefOfPreviousMonth);
+                    if (docSnapOfPreviousMonth.exists()) {
+                        const data = Object.entries(docSnapOfPreviousMonth.data());
+                        const previousMonthLastDay = Object.keys(data).length;
 
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    let previousDay = parseInt(selectedDay) - 1;
-                    let previousDayData = data[`${previousDay}`];
-                    while (previousDayData === undefined || previousDayData.noCupsLeftInTheStore === undefined) {
-                        previousDay -= 1;
-                        previousDayData = data[`${previousDay}`];
+                        const previousMonthLastDayData = data[previousMonthLastDay - 1];
+
+                        noCupsLeftInTheStore['500ml'] = previousMonthLastDayData[1].noCupsLeftInTheStore['500ml'];
+                        noCupsLeftInTheStore['700ml'] = previousMonthLastDayData[1].noCupsLeftInTheStore['700ml'];
+                        noCupsLeftInTheStore['800ml'] = previousMonthLastDayData[1].noCupsLeftInTheStore['800ml'];
+
+                    } else {
+                        flagToStopLoop += 1;
                     }
+                } else if (selectedDay === '1' || previousDay < 1 && month === '01') {
+                    yearToAccessData = yearToAccessData - 1;
+                    monthToAccessData = '12';
+                    const documentIdOfPreviousMonth = `${selectedBranch}${yearToAccessData.toString()}${monthToAccessData}`;
+                    const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
 
-                    noCupsLeftInTheStore['500ml'] = previousDayData.noCupsLeftInTheStore['500ml'];
-                    noCupsLeftInTheStore['700ml'] = previousDayData.noCupsLeftInTheStore['700ml'];
-                    noCupsLeftInTheStore['800ml'] = previousDayData.noCupsLeftInTheStore['800ml'];
+                    const docSnapOfPreviousMonth = await getDoc(docRefOfPreviousMonth);
+                    if (docSnapOfPreviousMonth.exists()) {
+                        const data = Object.entries(docSnapOfPreviousMonth.data());
+                        const previousMonthLastDay = Object.keys(data).length;
+
+                        const previousMonthLastDayData = data[previousMonthLastDay - 1];
+
+                        noCupsLeftInTheStore['500ml'] = previousMonthLastDayData[1].noCupsLeftInTheStore['500ml'];
+                        noCupsLeftInTheStore['700ml'] = previousMonthLastDayData[1].noCupsLeftInTheStore['700ml'];
+                        noCupsLeftInTheStore['800ml'] = previousMonthLastDayData[1].noCupsLeftInTheStore['800ml'];
+                    } else {
+                        flagToStopLoop += 1;
+                    }
+                } else {
+                    previousDay = previousDay - 1;
+                    if (data && data[`${previousDay}`] !== undefined) {
+                        const previousDayData = data[`${previousDay}`];
+                        noCupsLeftInTheStore['500ml'] = previousDayData.noCupsLeftInTheStore['500ml'];
+                        noCupsLeftInTheStore['700ml'] = previousDayData.noCupsLeftInTheStore['700ml'];
+                        noCupsLeftInTheStore['800ml'] = previousDayData.noCupsLeftInTheStore['800ml'];
+                    }
                 }
             }
 
@@ -114,14 +118,13 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
             const totalNoCupsPerDayType800ml = noCupsLeftInTheStore['800ml'] + deliveryMore.cups800ml;
 
 
-
             const totalNoCupsPerDay = { '500ml': totalNoCupsPerDayType500ml, '700ml': totalNoCupsPerDayType700ml, '800ml': totalNoCupsPerDayType800ml };
 
             const totalCupsSole = { '500ml': 0, '700ml': 0, '800ml': 0 };
 
-            totalCupsSole['500ml'] = (noCupsLeftInTheStore['500ml'] + deliveryMore.cups500ml) - noGlassInDay.cups500ml - breakGlass.cups500ml;
-            totalCupsSole['700ml'] = (noCupsLeftInTheStore['700ml'] + deliveryMore.cups700ml) - noGlassInDay.cups700ml - breakGlass.cups700ml;
-            totalCupsSole['800ml'] = (noCupsLeftInTheStore['800ml'] + deliveryMore.cups800ml) - noGlassInDay.cups800ml - breakGlass.cups800ml;
+            totalCupsSole['500ml'] = totalNoCupsPerDayType500ml - noGlassInDay.cups500ml - breakGlass.cups500ml;
+            totalCupsSole['700ml'] = totalNoCupsPerDayType700ml - noGlassInDay.cups700ml - breakGlass.cups700ml;
+            totalCupsSole['800ml'] = totalNoCupsPerDayType800ml - noGlassInDay.cups800ml - breakGlass.cups800ml;
 
 
             const newEntry = {
@@ -151,6 +154,7 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
                     '800ml': breakGlass.cups800ml
                 }
             };
+
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
                 // Document exists, update the array field
@@ -163,14 +167,10 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
                     [selectedDay]: newEntry
                 });
             }
-
-            if (parseInt(selectedDay) < new Date().getDate()) {
-                console.log("Ngay ban chonj nho hon ngay hien tai");
-                handleUpdateAfterDay(documentId);
-            }
-
+            handleUpdateAfterDay(month, year);
             close();
             setTypeAndMessage('success', 'Cập nhật tồn kho thành công!');
+
         } catch (error) {
             console.log(error);
             close();
@@ -178,38 +178,71 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
         }
     }
 
-    const handleUpdateAfterDay = async (documentId: string) => {
+    const handleUpdateAfterDay = async (month: string, year: string) => {
         open(); // Open the loading spinner
+        let documentId = `${selectedBranch}${year}${month}`;
         const docRef = doc(db, 'stocks', documentId);
         try {
             const dataSnapshot = await getDoc(docRef);
             if (dataSnapshot.exists()) {
-                const data = dataSnapshot.data();
+                let data = dataSnapshot.data();
                 let afterDay = parseInt(selectedDay) + 1;
-                let dataToUpdate;
-                while (data[`${afterDay}`] === undefined && afterDay <= 31) {
+                let monthToUpdate = month;
+                let yearToUpdate = parseInt(year);
+                let flagToStopLoop = 0;
+                while (data[`${afterDay}`] === undefined && flagToStopLoop < 3) {
                     afterDay += 1;
-                    dataToUpdate = data[`${afterDay}`];
+                    if (afterDay > 31 && monthToUpdate !== '12') {
+                        if (flagToStopLoop !== 2) {
+                            monthToUpdate = String(parseInt(monthToUpdate) + 1).padStart(2, '0');
+                            documentId = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+                            const newDocRef = doc(db, 'stocks', documentId);
+                            const newDocSnap = await getDoc(newDocRef);
+                            if (newDocSnap.exists()) {
+                                data = newDocSnap.data();
+                                afterDay = 1;
+                            } else {
+                                afterDay = 31;
+                            }
+                            flagToStopLoop += 1;
+                        } else {
+                            break; // Stop the loop 
+                        }
+                    } else if (afterDay > 31 && monthToUpdate === '12') {
+                        if (flagToStopLoop !== 2) {
+                            yearToUpdate = yearToUpdate + 1;
+                            monthToUpdate = '01';
+
+                            documentId = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+                            const newDocRef = doc(db, 'stocks', documentId);
+                            const newDocSnap = await getDoc(newDocRef);
+                            if (newDocSnap.exists()) {
+                                data = newDocSnap.data();
+                                afterDay = 1;
+                            } else {
+                                afterDay = 31;
+                            }
+                            flagToStopLoop += 1;
+                        } else {
+                            break; // Stop the loop 
+                        }
+                    }
                 }
 
-                if (dataToUpdate !== undefined) {
-                    console.log(dataToUpdate);
-
+                if (data[`${afterDay}`] !== undefined) {
                     const totalNoCupsPerDay = {
-                        '500ml': dataToUpdate.deliveryMore['500ml'] + noGlassInDay.cups500ml,
-                        '700ml': dataToUpdate.deliveryMore['700ml'] + noGlassInDay.cups700ml,
-                        '800ml': dataToUpdate.deliveryMore['800ml'] + noGlassInDay.cups800ml
+                        '500ml': data[`${afterDay}`].deliveryMore['500ml'] + noGlassInDay.cups500ml,
+                        '700ml': data[`${afterDay}`].deliveryMore['700ml'] + noGlassInDay.cups700ml,
+                        '800ml': data[`${afterDay}`].deliveryMore['800ml'] + noGlassInDay.cups800ml
                     }
-
                     const totalCupsSole = {
-                        '500ml': totalNoCupsPerDay['500ml'] - dataToUpdate.noCupsLeftInTheStore['500ml'] - dataToUpdate.breakGlass['500ml'],
-                        '700ml': totalNoCupsPerDay['700ml'] - dataToUpdate.noCupsLeftInTheStore['700ml'] - dataToUpdate.breakGlass['700ml'],
-                        '800ml': totalNoCupsPerDay['800ml'] - dataToUpdate.noCupsLeftInTheStore['800ml'] - dataToUpdate.breakGlass['800ml']
+                        '500ml': totalNoCupsPerDay['500ml'] - data[`${afterDay}`].noCupsLeftInTheStore['500ml'] - data[`${afterDay}`].breakGlass['500ml'],
+                        '700ml': totalNoCupsPerDay['700ml'] - data[`${afterDay}`].noCupsLeftInTheStore['700ml'] - data[`${afterDay}`].breakGlass['700ml'],
+                        '800ml': totalNoCupsPerDay['800ml'] - data[`${afterDay}`].noCupsLeftInTheStore['800ml'] - data[`${afterDay}`].breakGlass['800ml']
                     }
-
                     await updateDoc(docRef, {
                         [afterDay.toString()]: {
-                            ...dataToUpdate, totalNoCupsPerDay, totalCupsSole
+                            ...data[`${afterDay}`], totalNoCupsPerDay, totalCupsSole
                         }
                     });
                 }

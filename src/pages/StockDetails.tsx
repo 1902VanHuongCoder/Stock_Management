@@ -2,7 +2,7 @@ import { useContext, useEffect, useState } from 'react';
 import { NavigationBar } from '../helpers';
 import { FaEdit, FaEye, FaPenAlt, FaTrash } from "react-icons/fa";
 // import { useParams } from 'react-router-dom';
-import { collection, DocumentData, getDocs } from 'firebase/firestore/lite';
+import { collection, DocumentData, getDocs, setDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
 import SideBarOfAdmin from '../components/SideBarOfAdmin';
 import UpdateRemainStock from '../components/UpdateRemainStock';
@@ -96,6 +96,184 @@ const StockDetails = () => {
 
     }
 
+    const handleDeleteStockDataInOneDay = async (day: string) => {  // Function to delete stock data in one day 
+        const month = selectedDate.slice(-2);
+        const year = selectedDate.slice(0, 4);
+        try {
+
+            let soLyConLaiTrongNgay: { [key: string]: number } = {};
+            let obj1 = Object.fromEntries(allStockDataInAMonth);
+            let obj2 = Object.fromEntries(allStockDataInAMonth);
+            let yearToAccessData = selectedDate.slice(0, 4);
+            let monthToAccessData = selectedDate.slice(-2);
+            let yearToUpdate = selectedDate.slice(0, 4);
+            let monthToUpdate = selectedDate.slice(-2);
+
+            let ngayTruocNgayBiXoa = (parseInt(day) - 1).toString();  // The day before the day to be deleted
+            let ngaySauNgayBiXoa = (parseInt(day) + 1).toString(); // The day after the day to be deleted
+
+            let flagToTerminateLoop = 0; // Flag to terminate the loop
+
+            while (obj2[`${ngayTruocNgayBiXoa}`] === undefined && flagToTerminateLoop < 2) {
+                if (parseInt(ngayTruocNgayBiXoa) > 0) {
+                    ngayTruocNgayBiXoa = (parseInt(ngayTruocNgayBiXoa) - 1).toString();
+                }
+                if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData !== '01') {
+                    monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0');
+                    const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`;
+
+                    const newDocRef = doc(db, 'stocks', newDocumentId);
+                    const newDocSnap = await getDoc(newDocRef);
+                    if (newDocSnap.exists()) {
+                        obj2 = newDocSnap.data();
+                        flagToTerminateLoop += 1;
+                        ngayTruocNgayBiXoa = "31";
+                        console.log("Tháng", monthToAccessData, "có dữ liệu tồn kho");
+                    } else if (!newDocSnap.exists()) {
+                        flagToTerminateLoop += 1;
+                        ngayTruocNgayBiXoa = "0";
+                        console.log("Tháng", monthToAccessData, " KHÔNG có dữ liệu tồn kho");
+                    }
+                }
+                else if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData === '01') {
+                    console.log("=== '01' runnn ");
+                    yearToAccessData = (parseInt(yearToAccessData) - 1).toString();
+                    monthToAccessData = "12";
+                    const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`;
+                    const newDocRef = doc(db, 'stocks', newDocumentId);
+                    const newDocSnap = await getDoc(newDocRef);
+                    if (newDocSnap.exists() && flagToTerminateLoop < 2) {
+                        flagToTerminateLoop += 1;
+                        obj2 = newDocSnap.data();
+                        ngayTruocNgayBiXoa = "31";
+                    } else if (!newDocSnap.exists()) {
+                        ngayTruocNgayBiXoa = "0";
+                    }
+                }
+            }
+
+            let flagToTerminateLoop2 = 0; // Flag to terminate the loop
+            while (obj1[`${ngaySauNgayBiXoa}`] === undefined && flagToTerminateLoop2 < 2) {
+                ngaySauNgayBiXoa = (parseInt(ngaySauNgayBiXoa) + 1).toString();
+                if (parseInt(ngaySauNgayBiXoa) > 31 && monthToUpdate !== '12') {
+                    monthToUpdate = String(parseInt(monthToUpdate) + 1).padStart(2, '0');
+                    const newDocumentId = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+                    const newDocRef = doc(db, 'stocks', newDocumentId);
+                    const newDocSnap = await getDoc(newDocRef);
+                    if (newDocSnap.exists()) {
+                        obj1 = newDocSnap.data();
+                        flagToTerminateLoop2 += 1;
+                        ngaySauNgayBiXoa = "1";
+                    } else if (!newDocSnap.exists()) {
+                        flagToTerminateLoop2 += 1;
+                    }
+
+                } else if (parseInt(ngaySauNgayBiXoa) > 31 && monthToUpdate === '12') {
+                    yearToUpdate = (parseInt(yearToUpdate) + 1).toString();
+                    monthToUpdate = "01";
+                    const newDocumentId = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+                    const newDocRef = doc(db, 'stocks', newDocumentId);
+                    const newDocSnap = await getDoc(newDocRef);
+                    if (newDocSnap.exists()) {
+                        obj1 = newDocSnap.data();
+                        flagToTerminateLoop2 += 1;
+                        ngaySauNgayBiXoa = "1";
+                    } else if (!newDocSnap.exists()) {
+                        flagToTerminateLoop2 += 1;
+                    }
+                }
+            }
+
+            if (obj2[`${ngayTruocNgayBiXoa}`] !== undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) {
+                soLyConLaiTrongNgay = obj2[`${ngayTruocNgayBiXoa}`].noCupsLeftInTheStore;
+                const tongCoTrongNgay = {
+                    '500ml': soLyConLaiTrongNgay['500ml'] + obj1[`${ngaySauNgayBiXoa}`].deliveryMore['500ml']
+                    , '700ml': soLyConLaiTrongNgay['700ml'] + obj1[`${ngaySauNgayBiXoa}`].deliveryMore['700ml']
+                    , '800ml': soLyConLaiTrongNgay['800ml'] + obj1[`${ngaySauNgayBiXoa}`].deliveryMore['800ml']
+                };
+                const tongBanDuoc = {
+                    '500ml': tongCoTrongNgay['500ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['500ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['500ml']
+                    , '700ml': tongCoTrongNgay['700ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['700ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['700ml']
+                    , '800ml': tongCoTrongNgay['800ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['800ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['800ml']
+                };
+
+                const newStockData = {
+                    ...obj1,
+                    [`${ngaySauNgayBiXoa}`]: {
+                        noCupsLeftInTheStore: obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore,
+                        deliveryMore: obj1[`${ngaySauNgayBiXoa}`].deliveryMore,
+                        totalNoCupsPerDay: tongCoTrongNgay,
+                        totalCupsSole: tongBanDuoc,
+                        breakGlass: obj1[`${ngaySauNgayBiXoa}`].breakGlass
+                    }
+                };
+
+                const documentIdToUpdate = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+
+                const docRefToUpdate = doc(db, 'stocks', documentIdToUpdate);
+
+                try {
+                    if (yearToUpdate === year && monthToUpdate === month) {
+                        const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
+                        await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
+                    } else {
+                        await setDoc(docRefToUpdate, newStockData);
+                    }
+                    alert("Cap nhat ngay sau ngay bi xoa thanh cong");
+                } catch (error) {
+                    console.error("Error getting documents: ", error);
+                    setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
+                }
+
+            } else if (obj2[`${ngayTruocNgayBiXoa}`] === undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) {
+
+                console.log("Không có dữ liệu ngày trước ngày bị xóa! Nên chỉ cập nhật ngày sau ngày bị xóa");
+                const tongCoTrongNgay = {
+                    '500ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['500ml']
+                    , '700ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['700ml']
+                    , '800ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['800ml']
+                };
+
+                const tongBanDuoc = {
+                    '500ml': tongCoTrongNgay['500ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['500ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['500ml']
+                    , '700ml': tongCoTrongNgay['700ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['700ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['700ml']
+                    , '800ml': tongCoTrongNgay['800ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['800ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['800ml']
+                };
+                const newStockData = {
+                    ...obj1,
+                    [`${ngaySauNgayBiXoa}`]: {
+                        noCupsLeftInTheStore: obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore,
+                        deliveryMore: obj1[`${ngaySauNgayBiXoa}`].deliveryMore,
+                        totalNoCupsPerDay: tongCoTrongNgay,
+                        totalCupsSole: tongBanDuoc,
+                        breakGlass: obj1[`${ngaySauNgayBiXoa}`].breakGlass
+                    }
+                };
+
+                const documentIdToUpdate = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
+                const docRefToUpdate = doc(db, 'stocks', documentIdToUpdate);
+                if (yearToUpdate === year && monthToUpdate === month) {
+                    const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
+                    await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
+                } else {
+                    await setDoc(docRefToUpdate, newStockData);
+                }
+                alert("Cap nhat ngay sau ngay bi xoa thanh cong");
+            } else {
+
+                if (monthToUpdate !== month && yearToUpdate !== year) {
+                    const documentToDeleteStockData = `${selectedBranch}${year}${month}`;
+                    const docRefToDeleteStockData = doc(db, 'stocks', documentToDeleteStockData);
+                    const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
+                    await setDoc(docRefToDeleteStockData, Object.fromEntries(newAllStockDataInAMonth));
+                }
+            }
+            setTypeAndMessage('success', 'Xóa dữ liệu thành công!');
+        } catch (error) {
+            console.error("Error getting documents: ", error);
+            setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
+        }
+    }
 
     useEffect(() => {
         const getAllBranches = async () => {
@@ -239,7 +417,7 @@ const StockDetails = () => {
                                     {allStockDataInAMonth.length > 0 ? allStockDataInAMonth.map((data: [string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }]) => {
                                         return (
                                             <tr key={data[0]} className='bg-slate-100'>
-                                                <td className='border px-4 py-2'>{data[0]}</td>
+                                                <td className='border px-4 py-2 bg-slate-300'>{data[0]}</td>
                                                 <td className='border px-4 py-2'>{data[1].noCupsLeftInTheStore['500ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].noCupsLeftInTheStore['700ml']}</td>
                                                 <td className='border px-4 py-2'>{data[1].noCupsLeftInTheStore['800ml']}</td>
@@ -258,11 +436,11 @@ const StockDetails = () => {
 
                                                 <td className='px-4 py-4 flex justify-around border'>
                                                     <button onClick={() => { setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: true, currentData: data[1], dayToModify: data[0] }) }} className='text-blue-500 hover:text-blue-700'><FaEdit /></button>
-                                                    <button className='text-red-500 hover:text-red-700'><FaTrash /></button>
+                                                    <button onClick={() => handleDeleteStockDataInOneDay(data[0])} className='text-red-500 hover:text-red-700'><FaTrash /></button>
                                                 </td>
                                             </tr>
                                         )
-                                    }) : <tr className='bg-slate-100 text-center '>Chưa có dữ liệu</tr>}
+                                    }) : <tr className='bg-slate-100 text-center '><td className='col-span-12'>Chưa có dữ liệu</td></tr>}
                                 </tbody>
                             </table>
                         </div>}
