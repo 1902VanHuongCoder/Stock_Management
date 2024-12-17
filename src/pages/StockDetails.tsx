@@ -41,6 +41,7 @@ const StockDetails = () => {
     const [tab, setTab] = useState(0);
     const { open, close } = useContext(LoadingContext);
     const { setTypeAndMessage } = useContext(NotificationContext);
+    const [reFetchStockData, setReFetchStockData] = useState(false);
 
     const handleChosingBranchAndDate = async () => {
         open();
@@ -63,7 +64,7 @@ const StockDetails = () => {
                 setAllStockDataInAMonth([]);
                 setNoCupsLeftInTheStore({ '500ml': 0, '700ml': 0, '800ml': 0 });
                 close();
-                setTypeAndMessage('fail', 'Không có dữ liệu cho tháng này. Hãy cập nhật tồn kho cho tháng này!');
+                setTypeAndMessage('fail', 'Tháng này không có dữ liệu tồn kho. Hãy cập nhật!');
             }
         } catch (error) {
             console.error("Error getting documents: ", error);
@@ -73,10 +74,9 @@ const StockDetails = () => {
     }
 
     const fetchStockData = async () => {
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-        const documentId = `${branchId}${currentYear}${currentMonth}`;
+        const currentYear = selectedDate.slice(0, 4);
+        const currentMonth = selectedDate.slice(-2);
+        const documentId = `${selectedBranch}${currentYear}${currentMonth}`;
 
         const docRef = doc(db, 'stocks', documentId);
         try {
@@ -313,7 +313,7 @@ const StockDetails = () => {
         }
         fetchStockData();
         getAllBranches();
-    }, []);
+    }, [reFetchStockData]);
 
     useEffect(() => {
         branches.forEach((branch) => {
@@ -329,9 +329,10 @@ const StockDetails = () => {
         });
     }, [selectedBranch, branchId, branches]);
 
+    console.log("1");
 
     return (
-        <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
+        <div className='relative min-h-screen max-w-screen sm:flex sm:justify-end bg-[#15b392]' >
             <SideBarOfAdmin />
             <div className='sm:basis-[80%]'>
                 <NavigationBar />
@@ -343,7 +344,7 @@ const StockDetails = () => {
                     <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>QUẢN LÝ KHO</h1>
                 </div>
                 <div onClick={() => { setShowUpdateRemainStockModal(true) }} className='w-full h-fit flex justify-end px-5 pt-5'>
-                    <button className='flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-white py-2 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80 uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
+                    <button className='border-[3px] border-solid border-slate-800 flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-white py-2 gap-x-2 font-bold rounded-md hover:shadow-lg transition-all cursor-pointer uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
                 </div>
                 <h1 className='w-full text-center text-white pb-5 pt-8 text-xl sm:text-3xl drop-shadow-md font-bold uppercase'>QUẦY {nameOfBranch}</h1>
                 <div className='px-5'>
@@ -372,27 +373,35 @@ const StockDetails = () => {
                                 className='w-full p-3  sm:w-[400px] rounded-lg border border-gray-300 outline-none'
                             />
                         </div>
-                        <div className='flex justify-end sm:items-end sm:h-[65px]'>
-                            <button onClick={handleChosingBranchAndDate} className='px-5 py-4 rounded-md mb-5 sm:mb-0 bg-[#FFEC59] font-bold hover:opacity-80'>Hiển thị</button>
+                        <div className='mb-4 h-fit flex justify-end'>
+                            <label htmlFor="submit" className='text-white font-medium mb-2 hidden sm:invisible'>Chọn tháng</label>
+                            <input
+                                type="button"
+                                id="submit"
+                                onClick={handleChosingBranchAndDate}
+                                value={'Xem'}
+                                className='sm:translate-y-[15px] border-[3px] border-solid border-slate-800 px-6 py-3 rounded-lg outline-none bg-[#FFEC59] font-bold hover:shadow-lg cursor-pointer transition-all'
+                            />
                         </div>
+
                     </div>
                     <p className='block text-white font-medium mb-2'>Số ly tồn kho </p>
                     <div className='flex justify-center sm:justify-start items-center gap-x-2'>
-                        <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
-                            <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                                <p className='sm:text-2xl sm:drop-shadow-lg'>{noCupsLeftInTheStore['500ml']}</p>
+                        <div className='bg-white rounded-lg p-2 sm:p-6 flex flex-col items-center gap-y-3 shadow-xl'>
+                            <div className='p-4 w-[70px] h-[70px] flex justify-center items-center shadow-md sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold '>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>{String(noCupsLeftInTheStore['500ml']).padStart(2, '0')}</p>
                             </div>
                             <p className='text-center sm:text-xl'>Ly 500ml size M</p>
                         </div>
-                        <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
-                            <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                                <p className='sm:text-2xl sm:drop-shadow-lg'>{noCupsLeftInTheStore['700ml']}</p>
+                        <div className='bg-white rounded-lg p-2 sm:p-6 flex flex-col items-center gap-y-3 shadow-xl'>
+                            <div className='p-4 w-[70px] h-[70px] flex justify-center items-center shadow-md sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>{String(noCupsLeftInTheStore['700ml']).padStart(2, '0')}</p>
                             </div>
                             <p className='text-center sm:text-xl'>Ly 700ml size M</p>
                         </div>
-                        <div className='bg-white rounded-lg p-4 flex flex-col items-center gap-y-3 shadow-xl'>
-                            <div className='p-4 sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
-                                <p className='sm:text-2xl sm:drop-shadow-lg'>{noCupsLeftInTheStore['800ml']}</p>
+                        <div className='bg-white rounded-lg p-2 sm:p-6 flex flex-col items-center gap-y-3 shadow-xl'>
+                            <div className='p-4 w-[70px] h-[70px] flex justify-center items-center shadow-md sm:h-[100px] sm:w-[100px] sm:flex sm:justify-center sm:items-center bg-[#15b392] rounded-full text-[#FFEC59] font-bold'>
+                                <p className='sm:text-2xl sm:drop-shadow-lg'>{String(noCupsLeftInTheStore['800ml']).padStart(2, '0')}</p>
                             </div>
                             <p className='text-center sm:text-xl'>Ly 800ml size lớn</p>
                         </div>
@@ -403,6 +412,12 @@ const StockDetails = () => {
                             <button onClick={() => setTab(1)} className={`py-2 px-6 font-bold ${tab === 1 ? 'bg-white' : 'bg-white opacity-80'} border-[4px] cursor-pointer border-solid border-[#54C392]`}>TAB 02</button>
                         </div>
                         {tab === 0 && <div className='overflow-x-auto mt-5'>
+                            <div className='flex items-center justify-end gap-x-4 py-4 px-2 text-white italic'>
+                                <p>Ghi chú:</p>
+                                <div className='flex gap-x-2 items-center '><span className="text-blue-500"><FaEdit /> </span><span>Nút cập nhật kho</span></div>
+                                <div className='flex gap-x-2 items-center '><span className="text-red-500"><FaTrash /> </span><span>Nút xóa kho</span></div>
+
+                            </div>
                             <table className='min-w-full bg-white'>
                                 <thead className='bg-[rgb(8,110,89)] text-white'>
                                     <tr>
@@ -413,7 +428,7 @@ const StockDetails = () => {
                                         <th colSpan={3} className='border px-4 py-2'>Ly ép hư</th>
                                         <th colSpan={3} className='border px-4 py-2'>Tổng bán được</th>
 
-                                        <th rowSpan={3} className='border px-4 py-2'>Action</th>
+                                        <th rowSpan={3} className='border px-4 py-2'>Hành động</th>
                                     </tr>
                                     <tr>
                                         <th className='border px-4 py-2'>500ml</th>
@@ -462,9 +477,10 @@ const StockDetails = () => {
                                                 </td>
                                             </tr>
                                         )
-                                    }) : <tr className='bg-slate-100 text-center '><td className='col-span-12'>Chưa có dữ liệu</td></tr>}
+                                    }) : <tr className='bg-slate-100 text-center'><td colSpan={24} rowSpan={4} className='text-center py-5'>Chưa có dữ liệu kho</td></tr>}
                                 </tbody>
                             </table>
+
                         </div>}
                         {tab === 1 && <div className='overflow-x-auto mt-10'>
                             <table className='min-w-full bg-white'>
@@ -520,14 +536,14 @@ const StockDetails = () => {
                                 </tbody>
                             </table>
                         </div>}
+
                     </div>
                 </div>
-                {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} yearAndMonthToUpdate={selectedDate} selectedBranch={selectedBranch} />}
+                {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} yearAndMonthToUpdate={selectedDate} selectedBranch={selectedBranch} reFetch={() => { setReFetchStockData(!reFetchStockData) }} />}
                 {showViewReportModal && <ReportModal closeModal={() => setShowViewReportModal(false)} />}
                 {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} />}
-                {modifyStockDataInADay.showModal && <ModifyStockDataInADay branchId={selectedBranch} currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
+                {modifyStockDataInADay.showModal && <ModifyStockDataInADay branchId={selectedBranch} currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} reFetch={() => { setReFetchStockData(!reFetchStockData) }} />}
             </div>
-
         </div>
     );
 };
