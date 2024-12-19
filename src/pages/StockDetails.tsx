@@ -217,9 +217,6 @@ const StockDetails = () => {
                     if (yearToUpdate === year && monthToUpdate === month) { // 
                         const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
                         await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
-
-                        console.log("yearToUpdate === year && monthToUpdate === month");
-
                     } else {
                         const documentContainsElementIsDeleted = `${selectedBranch}${year}${month}`;
                         const docRefToDelete = doc(db, 'stocks', documentContainsElementIsDeleted);
@@ -228,15 +225,12 @@ const StockDetails = () => {
                         await setDoc(docRefToUpdate, newStockData);
 
                     }
-                    alert("Cap nhat ngay sau ngay bi xoa thanh cong");
                 } catch (error) {
                     console.error("Error getting documents: ", error);
                     setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
                 }
 
             } else if (obj2[`${ngayTruocNgayBiXoa}`] === undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) {
-
-                console.log("Không có dữ liệu ngày trước ngày bị xóa! Nên chỉ cập nhật ngày sau ngày bị xóa");
                 const tongCoTrongNgay = {
                     '500ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['500ml']
                     , '700ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['700ml']
@@ -278,7 +272,6 @@ const StockDetails = () => {
                     console.error("Error getting documents: ", error);
                     setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
                 }
-                alert("Cap nhat ngay sau ngay bi xoa thanh cong");
             } else {
 
                 if (monthToUpdate !== month && yearToUpdate !== year) {
@@ -288,8 +281,10 @@ const StockDetails = () => {
                     await setDoc(docRefToDeleteStockData, Object.fromEntries(newAllStockDataInAMonth));
                 }
             }
+            setReFetchStockData(!reFetchStockData);
             setTypeAndMessage('success', 'Xóa dữ liệu thành công!');
         } catch (error) {
+            setReFetchStockData(!reFetchStockData);
             console.error("Error getting documents: ", error);
             setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
         }
