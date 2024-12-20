@@ -16,6 +16,7 @@ import LoadingContext from '../contexts/LoadingContext';
 import NotificationContext from '../contexts/NotificationContext';
 const StockDetails = () => {
     const { branchId } = useParams<{ branchId: string }>();
+    const [dayToUpdateReport, setDayToUpdateReport] = useState(1);
     const [selectedBranch, setSelectedBranch] = useState(branchId || '');
     const [nameOfBranch, setNameOfBranch] = useState('');
     const [selectedDate, setSelectedDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
@@ -513,7 +514,7 @@ const StockDetails = () => {
                                             <td className='border px-4 py-2'>0</td>
                                             <td className='border px-4 py-2'>0</td>
                                             <td className='border px-4 py-2'>0</td>
-                                            <td className='border px-4 py-2'><span className='flex justify-center items-center text-[#15B392]' onClick={() => { setShowViewReportModal(true) }}><FaEye /></span></td>
+                                            <td className='border px-4 py-2'><span className='flex justify-center items-center text-[#15B392]' onClick={() => { setShowViewReportModal(true); setDayToUpdateReport(1) }}><FaEye /></span></td>
                                             <td className='border px-4 py-2'><span className='flex justify-center items-center text-[#dfca2b]' onClick={() => { setShowUpdateReportModal(true) }}><FaPenToSquare /></span></td>
                                         </tr>
                                     ))}
@@ -524,7 +525,7 @@ const StockDetails = () => {
                 </div>
                 {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} yearAndMonthToUpdate={selectedDate} selectedBranch={selectedBranch} />}
                 {showViewReportModal && <ReportModal closeModal={() => setShowViewReportModal(false)} />}
-                {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} />}
+                {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} branchName={nameOfBranch} dayToUpdateReport={dayToUpdateReport}/>}
                 {modifyStockDataInADay.showModal && <ModifyStockDataInADay branchId={selectedBranch} currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
             </div>
 

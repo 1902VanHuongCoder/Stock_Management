@@ -167,6 +167,21 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
                     [selectedDay]: newEntry
                 });
             }
+
+            const newDocumentId = `${selectedBranch}${year}${month}02`;
+            const newDocRef = doc(db, 'stocks02', newDocumentId);
+            const newDocSnap = await getDoc(newDocRef);
+            if (newDocSnap.exists()) {
+                await updateDoc(newDocRef, {
+                    [selectedDay]: {}
+                });
+            } else {
+                await setDoc(newDocRef, {
+                    [selectedDay]: {}
+                });
+                alert("Vừa đêm kho 2");
+            }
+
             handleUpdateAfterDay(month, year);
             close();
             setTypeAndMessage('success', 'Cập nhật tồn kho thành công!');
