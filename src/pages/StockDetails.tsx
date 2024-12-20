@@ -537,8 +537,8 @@ const StockDetails = () => {
                 </div>
                 {showUpdateRemainStockModal && <UpdateRemainStock closeModal={() => setShowUpdateRemainStockModal(false)} yearAndMonthToUpdate={selectedDate} selectedBranch={selectedBranch} reFetch={() => { setReFetchStockData(!reFetchStockData) }} />}
                 {showViewReportModal && <ReportModal closeModal={() => setShowViewReportModal(false)} />}
-                {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} branchName={nameOfBranch} dayToUpdateReport={dayToUpdateReport}/>}
-                {modifyStockDataInADay.showModal && <ModifyStockDataInADay branchId={selectedBranch} currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
+                {showUpdateReportModal && <UpdateReportModal closeModal={() => setShowUpdateReportModal(false)} branchName={nameOfBranch} dayToUpdateReport={dayToUpdateReport} />}
+                {modifyStockDataInADay.showModal && <ModifyStockDataInADay reFetch={() => { setReFetchStockData(!reFetchStockData) }} branchId={selectedBranch} currentData={modifyStockDataInADay.currentData} dayToModify={modifyStockDataInADay.dayToModify} monthToModify={modifyStockDataInADay.monthToModify} yearToModify={modifyStockDataInADay.yearToModify} closeModal={() => setModifyStockDataInADay({ ...modifyStockDataInADay, showModal: false })} />}
             </div>
         </div>
     );
