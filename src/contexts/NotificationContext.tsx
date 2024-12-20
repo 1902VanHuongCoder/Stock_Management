@@ -22,7 +22,7 @@ export default NotificationContext;
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
     const [notification, setNotification] = React.useState({
         isShow: false,
-        type: 'fail',
+        type: 'success',
         message: 'Cập nhật thông tin thành công!',
     });
     const close = () => setNotification({ ...notification, isShow: false });

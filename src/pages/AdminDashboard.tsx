@@ -138,7 +138,7 @@ const AdminDashboard = () => {
                     <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>TẤT CẢ CHI NHÁNH</h1>
                 </div>
                 <div className='w-full h-fit flex justify-end px-5 pt-5'>
-                    <button onClick={handleOpenModal} className='uppercase flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer hover:opacity-80'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
+                    <button onClick={handleOpenModal} className='border-[3px] border-solid border-slate-800 hover:shadow-xl transition-all uppercase flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
                 </div>
                 {/* onClick={() => handleNavigate("123")} */}
                 <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >

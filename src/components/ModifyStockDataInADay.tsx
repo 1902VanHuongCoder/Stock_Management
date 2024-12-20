@@ -28,7 +28,7 @@ interface StockData {
 
 }
 
-const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToModify, currentData, branchId }: { closeModal: () => void, dayToModify: string, monthToModify: string, yearToModify: string, currentData: StockData, branchId: string }) => {
+const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToModify, currentData, branchId, reFetch }: { closeModal: () => void, dayToModify: string, monthToModify: string, yearToModify: string, currentData: StockData, branchId: string, reFetch: () => void }) => {
     const { setTypeAndMessage } = useContext(NotificationContext);
     const { open, close } = useContext(LoadingContext);
     const [noGlassInDay, setNoGlassInDay] = useState({
@@ -127,40 +127,6 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
                         });
                     }
 
-
-
-                    // if (stockDataDoc.exists()) {
-
-                    //     const stockData = stockDataDoc.data();
-                    //     let afterDay = parseInt(dayToModify) + 1;
-                    //     let stockDataOfTheDayAfter = stockData[afterDay.toString()];
-
-                    //     while (stockDataOfTheDayAfter === undefined && afterDay < 32) {
-                    //         afterDay++;
-                    //         stockDataOfTheDayAfter = stockData[afterDay.toString()];
-                    //     }
-
-                    //     if (stockDataOfTheDayAfter !== undefined) {
-                    //         const totalNoCupsPerDay = {
-                    //             '500ml': stockDataOfTheDayAfter.deliveryMore['500ml'] + noGlassInDay.cups500ml,
-                    //             '700ml': stockDataOfTheDayAfter.deliveryMore['700ml'] + noGlassInDay.cups700ml,
-                    //             '800ml': stockDataOfTheDayAfter.deliveryMore['800ml'] + noGlassInDay.cups800ml
-                    //         }
-
-                    //         const totalCupsSole = {
-                    //             '500ml': totalNoCupsPerDay['500ml'] - stockDataOfTheDayAfter.noCupsLeftInTheStore['500ml'],
-                    //             '700ml': totalNoCupsPerDay['700ml'] - stockDataOfTheDayAfter.noCupsLeftInTheStore['700ml'],
-                    //             '800ml': totalNoCupsPerDay['800ml'] - stockDataOfTheDayAfter.noCupsLeftInTheStore['800ml']
-                    //         };
-
-                    //         await updateDoc(stockDataRef, {
-                    //             [afterDay.toString()]: {
-                    //                 ...stockDataOfTheDayAfter, totalNoCupsPerDay: totalNoCupsPerDay, totalCupsSole: totalCupsSole
-                    //             }
-                    //         });
-                    //     }
-                    // }
-
                     const totalCupsSole = {
                         '500ml': currentData.totalNoCupsPerDay['500ml'] - noGlassInDay.cups500ml,
                         '700ml': currentData.totalNoCupsPerDay['700ml'] - noGlassInDay.cups700ml,
@@ -177,11 +143,14 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
                         }
                     });
                     close();
+                    closeModal();
+                    reFetch();
                     setTypeAndMessage('success', 'Cập nhật dữ liệu thành công');
                 }
             } catch (error) {
                 console.log(error);
                 close();
+                closeModal();
                 setTypeAndMessage('error', 'Có lỗi xảy ra khi cập nhật dữ liệu');
             }
         }
@@ -231,6 +200,8 @@ const ModifyStockDataInADay = ({ closeModal, dayToModify, monthToModify, yearToM
                     }
                 });
                 close();
+                closeModal();
+                reFetch();
                 setTypeAndMessage('success', 'Cập nhật dữ liệu thành công');
             } catch (error) {
                 console.log(error);

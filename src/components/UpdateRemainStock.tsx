@@ -5,7 +5,7 @@ import { db } from '../services/firebaseConfig';
 import { getDoc, setDoc, updateDoc } from 'firebase/firestore/lite';
 import LoadingContext from '../contexts/LoadingContext';
 
-const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }: { closeModal: () => void, yearAndMonthToUpdate: string, selectedBranch: string }) => {
+const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch, reFetch }: { closeModal: () => void, yearAndMonthToUpdate: string, selectedBranch: string, reFetch: () => void }) => {
     const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [days, setDays] = useState<number[]>([]);
     const { setTypeAndMessage } = useContext(NotificationContext);
@@ -49,7 +49,7 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
             if (whetherStockExists.exists()) {
                 data = whetherStockExists.data();
                 if (data[selectedDay] !== undefined) {
-                    setTypeAndMessage('fail', 'Thông tin kho vào ngày này đã được cập nhật! Hãy sửa thông tin kho!');
+                    setTypeAndMessage('fail', 'Thông tin kho vào ngày này đã tồn tại, Hãy sửa nó nhé!');
                     close();
                     return; // Stop the function
                 }
@@ -63,7 +63,6 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
             let previousDay = parseInt(selectedDay); // Default previous day to access data is the selected day
 
             while (noCupsLeftInTheStore['500ml'] === 0 && noCupsLeftInTheStore['700ml'] === 0 && noCupsLeftInTheStore['800ml'] === 0 && flagToStopLoop < 2) {
-                console.log(previousDay);
                 if (selectedDay === '1' || previousDay < 1 && month !== '01') {
                     monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0');
                     const documentIdOfPreviousMonth = `${selectedBranch}${year}${monthToAccessData}`;
@@ -184,12 +183,14 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
 
             handleUpdateAfterDay(month, year);
             close();
-            setTypeAndMessage('success', 'Cập nhật tồn kho thành công!');
-
+            closeModal(); // Close the modal 
+            setTypeAndMessage('success', `Cập nhật tồn kho cho ngày ${String(selectedDay).padStart(2, '0')} thành công!`);
+            reFetch(); // Re-fetch the 
         } catch (error) {
             console.log(error);
             close();
-            setTypeAndMessage('fail', 'Lỗi trong quá trình cập nhật tồn kho! Hãy thử lại sau!');
+            closeModal(); // Close the modal 
+            setTypeAndMessage('fail', 'Lỗi khi cập nhật tồn kho do kết nối mạng không ổn định! Hãy thử lại sau!');
         }
     }
 
@@ -244,9 +245,6 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
                     }
                 }
 
-                console.log("Có ngày hôm sau để cập nhật không?", data[`${afterDay}`] !== undefined);
-                console.log("Ngay de cap nhat la:", afterDay, "-", monthToUpdate, "-", yearToUpdate);
-
                 if (data[`${afterDay}`] !== undefined) {
                     const totalNoCupsPerDay = {
                         '500ml': data[`${afterDay}`].deliveryMore['500ml'] + noGlassInDay.cups500ml,
@@ -261,13 +259,6 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
 
 
                     const newRef = doc(db, 'stocks', `${selectedBranch}${yearToUpdate}${monthToUpdate}`);
-
-                    console.log("DocumentId của ngày sau ngày cập nhập", `${selectedBranch}${yearToUpdate}${monthToUpdate}`);
-
-                    console.log("Dữ liệu mới để cập nhật cho ngày 16", {
-                        ...data[`${afterDay}`], totalNoCupsPerDay, totalCupsSole
-                    })
-
                     await updateDoc(newRef, {
                         [afterDay.toString()]: {
                             ...data[`${afterDay}`], totalNoCupsPerDay, totalCupsSole
@@ -287,15 +278,23 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch }:
 
 
     useEffect(() => {
-        const today = new Date();
-        const currentDay = today.getDate();
-        const daysArray = Array.from({ length: currentDay }, (_, i) => i + 1);
+        const month = yearAndMonthToUpdate.slice(-2);
+        const year = yearAndMonthToUpdate.slice(0, 4);
+        const getDaysInMonth = (year: number, month: number): number => {
+            return new Date(year, month, 0).getDate();
+        };
+        const daysInMonth = getDaysInMonth(parseInt(year), parseInt(month));
+        const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
         setDays(daysArray);
-    }, []);
+
+        console.log("Render");
+
+    }, [yearAndMonthToUpdate]);
+    console.log("1");
 
     return (
         <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center bg-[rgba(0,0,0,.8)]'>
-            <div className="px-5 w-[95%] sm:w-[80%] bg-white pt-5 border-[2px] border-dashed border-slate-500">
+            <div className="px-5 sm:p-6 w-[95%] sm:w-[80%] bg-white pt-5 border-[2px] border-dashed border-slate-500 shadow-white">
                 <h2 className='text-center font-bold text-2xl text-[#15B392] drop-shadow-md pt-2 pb-6'>CẬP NHẬT TỒN KHO</h2>
                 <div className='mb-4'>
                     <label htmlFor="date" className='block text-black font-medium mb-2'>Chọn ngày <span className="text-red-500">(*)</span></label>
