@@ -14,7 +14,7 @@ const App = () => {
           <Route path="/" element={<Introduction />} />
           <Route path="/quanly/dangnhap" element={<ALogin />} />
           <Route path="/nhanvien/dangnhap" element={<NLogin />} />
-          <Route path="/home" element={<Home />} />
+          <Route path="/nguyenkiet/nhanvien/nhaplieukho/:branchId" element={<Home />} />
           {/* TO VAN HUONG - PAUL TO - VIET NAM */}
           <Route path="/quanly/nguyenkiet" element={<AdminDashboard />} />
           <Route path="/quanly/nguyenkiet/chinhanh/:branchId" element={<StockDetails />} />

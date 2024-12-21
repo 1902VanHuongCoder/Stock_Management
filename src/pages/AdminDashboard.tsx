@@ -108,6 +108,10 @@ const AdminDashboard = () => {
         navigate(`/quanly/capnhatchinhanh/${id}`);
     }
 
+    const handleNavigateToStockDetail = (branchId: string) => {
+        navigate(`/quanly/nguyenkiet/chinhanh/${branchId}`);
+    }
+
     useEffect(() => {
         const getAllBranches = async () => {
             open(); // Open loading
@@ -124,12 +128,7 @@ const AdminDashboard = () => {
 
         }
         getAllBranches();
-
     }, [])
-
-    const handleNavigateToStockDetail = (branchId: string) => {
-        navigate(`/quanly/nguyenkiet/chinhanh/${branchId}`);
-    }
 
     return (
         <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
