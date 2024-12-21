@@ -178,7 +178,6 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch, r
                 await setDoc(newDocRef, {
                     [selectedDay]: {}
                 });
-                alert("Vừa đêm kho 2");
             }
 
             handleUpdateAfterDay(month, year);

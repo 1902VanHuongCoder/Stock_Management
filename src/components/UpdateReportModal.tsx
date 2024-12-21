@@ -1,22 +1,30 @@
-import { ChangeEvent, useState } from 'react'
+// Coder: To Van Huong - Paul To - Viet Nam 
+import { ChangeEvent, useContext, useState } from 'react'
 import { FaFileExcel } from 'react-icons/fa';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx'; // Import the XLSX library to read the Excel file
+import { db } from '../services/firebaseConfig';
+import { doc, getDoc, updateDoc } from 'firebase/firestore/lite';
+import NotificationContext from '../contexts/NotificationContext';
+import LoadingContext from '../contexts/LoadingContext';
 
-const UpdateReportModal = ({ closeModal, branchName, dayToUpdateReport }: { closeModal: () => void, branchName: string, dayToUpdateReport: number }) => {
+const UpdateReportModal = ({ closeModal, branchName, dayToUpdateReport, branchId, selectedDate, reFetch }: { closeModal: () => void, branchName: string, dayToUpdateReport: number, branchId: string, selectedDate: string, reFetch: () => void }) => {
     const [report, setReport] = useState({
         noOnForcingMachine: 0,
         total: 0,
         moneyUsed: 0,
         initialMoney: 0,
     });
+    const { setTypeAndMessage } = useContext(NotificationContext); // Get the function to set the notification message
+    const { open, close } = useContext(LoadingContext); // Get the function to open and close the loading modal
 
     const [dataFromFile, setDataFromFile] = useState({ show: false, lGlass: 0, mGlass: 0, glass800: 0, totalRevenue: "" });
-    const containsSizeL = (str: string): boolean => { // Check if a string contains 'size L' or not to count the number of glasses with size L
-        return /size L/i.test(str);
-    };
 
     const formatNumber = (number: number): string => { // Convert a number to a string with format 000.000.000
         return new Intl.NumberFormat('de-DE').format(number);
+    };
+
+    const parseFormattedNumber = (formattedNumber: string): number => { // Convert a formatted number to a number to calculate the total revenue and note
+        return parseInt(formattedNumber.replace(/\./g, ''), 10);
     };
 
 
@@ -44,11 +52,11 @@ const UpdateReportModal = ({ closeModal, branchName, dayToUpdateReport }: { clos
 
             jsonData.forEach((row: (string | number)[]) => { // Loop through each row of the JSON data array to get the number of glasses with according size and the total revenue
                 if (row[4] !== undefined && typeof row[4] === 'number' && !isNaN(row[4])) { // If the 5th column is a number, it's the number of glasses. That is a signature of a row containing the number of glasses
-                    if (typeof row[5] === 'string' && containsSizeL(row[5])) { // If the 6th column's value contains 'size L', it's a glass with size L
+                    if (typeof row[5] === 'string' && /size L/i.test(row[5]) && !(/(Hủy)/i.test(row[5]))) { // If the 6th column's value contains 'size L' (case-insensitive), it's a glass with size L
                         lGlass += parseInt(row[7].toString()); // The number of according glasses is in the 8th column
-                    } else if (typeof row[5] === 'string' && row[5].includes('Size M')) { // If the 6th column's value contains 'Size M', it's a glass with size M
+                    } else if (typeof row[5] === 'string' && /size M/i.test(row[5]) && !(/(Hủy)/i.test(row[5]))) { // If the 6th column's value contains 'size M' (case-insensitive), it's a glass with size M
                         mGlass += parseInt(row[7].toString()); // The number of according glasses is in the 8th column
-                    } else if (typeof row[5] === 'string' && row[5].includes('800')) { // If the 6th column's value contains '800', it's a glass with size 800
+                    } else if (typeof row[5] === 'string' && row[5].includes('800') && !(/(Hủy)/i.test(row[5]))) { // If the 6th column's value contains '800', it's a glass with size 800
                         glass800 += parseInt(row[7].toString()); // The number of according glasses is in the 8th column
                     }
                 }
@@ -64,9 +72,48 @@ const UpdateReportModal = ({ closeModal, branchName, dayToUpdateReport }: { clos
 
     };
 
-    const handleUpdateReport = () => {
-        
-    } // Handle the update report event   
+    const handleUpdateReport = async () => {
+        open(); // Open the loading modal
+        const remainRevenueInReality = report.total + report.moneyUsed - report.initialMoney; // Calculate the remaining revenue
+        const dataToWriteIntoNote = remainRevenueInReality - parseFormattedNumber(dataFromFile.totalRevenue); // Get the total revenue from the file to save it to the note
+
+        const reportData = {
+            glassesOnApp: { lGlass: dataFromFile.lGlass, mGlass: dataFromFile.mGlass, glass800: dataFromFile.glass800 },
+            revenueOnApp: dataFromFile.totalRevenue,
+            glassesOnForceMachine: report.noOnForcingMachine,
+            total: formatNumber(report.total),
+            moneyUsed: formatNumber(report.moneyUsed),
+            initialMoney: formatNumber(report.initialMoney),
+            remainRevenue: formatNumber(remainRevenueInReality),
+            note: formatNumber(dataToWriteIntoNote),
+        };
+
+        const month = selectedDate.slice(-2);
+        const year = selectedDate.slice(0, 4);
+        const documentId = `${branchId}${year}${month}02`; // Create the document ID to update the report
+        const docRef = doc(db, 'stocks02', documentId); // Get the document reference to update the report
+        try {
+            const docSnap = await getDoc(docRef); // Get the document snapshot to check if the document exists or not
+            if (docSnap.exists()) {
+                const docData = docSnap.data(); // Get the document data to check if the report exists or not
+                if (docData[`${dayToUpdateReport}`] !== undefined) {
+                    await updateDoc(docRef, {
+                        [dayToUpdateReport]: reportData
+                    }); // Update the report if the document exists
+                    setTypeAndMessage('success', 'Cập nhật báo cáo thành công');
+                    closeModal();
+                    close(); // Close the loading modal
+                    reFetch();
+                }
+            } // Handle the update report event 
+        } catch (error) {
+            setTypeAndMessage('fail', 'Có lỗi xảy ra, vui lòng thử lại sau');
+            console.log(error);
+            closeModal();
+            close(); // Close the loading modal
+        }
+
+    }
 
     return (
         <div className='w-screen h-screen overflow-auto fixed top-0 left-0 flex justify-center items-center bg-[rgba(0,0,0,.8)]'>
@@ -155,7 +202,8 @@ const UpdateReportModal = ({ closeModal, branchName, dayToUpdateReport }: { clos
                                 </tr>
                                 <tr className='bg-green-600 font-bold text-white'>
                                     <td className='border border-gray-300 p-2'>Tổng doanh thu</td>
-                                    <td className='border border-gray-300 p-2 text-center'>{dataFromFile.totalRevenue} VND</td> </tr>
+                                    <td className='border border-gray-300 p-2 text-center'>{dataFromFile.totalRevenue} VND</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
