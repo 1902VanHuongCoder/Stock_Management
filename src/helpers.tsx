@@ -1,3 +1,4 @@
+// TO VAN HUONG - PAUL TO - VIET NAM
 import ALogin from './pages/admin/ALogin';
 import Introduction from './pages/Introduction';
 import Home from './pages/Home'
@@ -16,5 +17,10 @@ import SideBar from './components/SideBar';
 import Loading from './components/Loading';
 import ConfirmDialog from './components/ConfirmDialog';
 import ErrorPage from './components/ErrorPage';
-
-export { ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, AddStaff, StockDetails, AddStockInfo };
+import SideBarOfAdmin from './components/SideBarOfAdmin';
+import UpdateRemainStock from './components/UpdateRemainStock';
+import ReportModal from './components/ReportModal';
+import UpdateReportModal from './components/UpdateReportModal';
+import ModifyStockDataInADay from './components/ModifyStockDataInADay';
+import ApprovePage from './pages/ApprovePage';
+export { ApprovePage, ModifyStockDataInADay, UpdateReportModal, ReportModal, UpdateRemainStock, SideBarOfAdmin, ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, AddStaff, StockDetails, AddStockInfo };

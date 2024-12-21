@@ -3,7 +3,6 @@ const Introduction = () => {
     const navigate = useNavigate();
     const handleNavigate = (path: string) => {
         navigate(path);
-        console.log(path);
     }
     return (
         <div className="max-w-screen h-screen flex justify-center items-center bg-[#15B392] overflow-hidden">

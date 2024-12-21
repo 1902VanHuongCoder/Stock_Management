@@ -1,8 +1,4 @@
-// import React, { useState, useEffect, useContext } from 'react';
-// import { useNavigate, useParams } from 'react-router-dom';
-// import { doc, getDoc, updateDoc } from 'firebase/firestore/lite';
-import SideBarOfAdmin from '../components/SideBarOfAdmin';
-import { NavigationBar } from '../helpers';
+import { NavigationBar, SideBarOfAdmin } from '../helpers';
 
 const ApprovePage = () => {
     return (

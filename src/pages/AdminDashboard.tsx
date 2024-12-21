@@ -1,32 +1,38 @@
 import { useContext, useEffect, useState } from 'react';
-import { NavigationBar } from '../helpers';
-import { FaPlusCircle } from "react-icons/fa";
 import { useNavigate } from 'react-router-dom';
-// import { db } from ''; // Đảm bảo import đúng file cấu hình Firestore
-import { collection, addDoc } from 'firebase/firestore/lite';
+import { NavigationBar, SideBarOfAdmin } from '../helpers';
+
 import { db } from '../services/firebaseConfig';
-import { uploadImage } from '../cloudinary';
-import { DocumentData, getDocs } from 'firebase/firestore/lite';
+import { collection, addDoc, DocumentData, getDocs } from 'firebase/firestore/lite';
+
+
 import NotificationContextType from '../contexts/NotificationContext';
 import LoadingContext from '../contexts/LoadingContext';
+import ConfirmContext from '../contexts/ConfirmContext';
+
 import { MdDelete } from "react-icons/md";
 import { FaPenToSquare } from "react-icons/fa6";
-import ConfirmContext from '../contexts/ConfirmContext';
-import SideBarOfAdmin from '../components/SideBarOfAdmin';
-// Import Cloudinary SDK
+import { FaPlusCircle } from "react-icons/fa";
+import { uploadImage } from '../cloudinary';
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); // Hook for navigation
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling adding branch modal 
+
+    // 4 states for adding branch form 
     const [branchName, setBranchName] = useState('');
     const [branchId, setBranchId] = useState('');
     const [password, setPassword] = useState('');
     const [img, setImg] = useState<File | null>(null);
-    const [branches, setBranches] = useState<DocumentData[]>([]);
-    const { setTypeAndMessage } = useContext(NotificationContextType);
-    const { open, close } = useContext(LoadingContext);
-    const { setDataToDelete } = useContext(ConfirmContext);
+
+    const [branches, setBranches] = useState<DocumentData[]>([]); // state to store branches that fetched from Firestore 
+
+    const { setTypeAndMessage } = useContext(NotificationContextType); // Context for notification
+    const { open, close } = useContext(LoadingContext); // Context for loading
+    const { setDataToDelete } = useContext(ConfirmContext); // Context for confirm dialog 
+
+
     const handleOpenModal = () => {
         setIsModalOpen(true);
     };
@@ -34,21 +40,6 @@ const AdminDashboard = () => {
     const handleCloseModal = () => {
         setIsModalOpen(false);
     };
-
-    const getAllBranches = async () => {
-        open(); // Open loading
-        try {
-            const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
-            const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
-            setBranches(branches);
-            close(); // Close loading
-        } catch (error) {
-            console.error("Lỗi khi lấy dữ liệu chi nhánh:", error);
-            setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
-            close(); // Close loading
-        }
-
-    }
 
     // Hàm thêm chi nhánh vào Firestore
     const addBranchToFirestore = async (branchName: string, password: string, img: File) => {
@@ -117,9 +108,23 @@ const AdminDashboard = () => {
         navigate(`/quanly/capnhatchinhanh/${id}`);
     }
 
-
     useEffect(() => {
+        const getAllBranches = async () => {
+            open(); // Open loading
+            try {
+                const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
+                const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
+                setBranches(branches);
+                close(); // Close loading
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu chi nhánh:", error);
+                setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
+                close(); // Close loading
+            }
+
+        }
         getAllBranches();
+
     }, [])
 
     const handleNavigateToStockDetail = (branchId: string) => {

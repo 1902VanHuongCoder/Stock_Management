@@ -1,29 +1,27 @@
+// TO VAN HUONG - PAUL TO - VIET NAM
 import { useContext, useEffect, useState } from 'react';
-import { NavigationBar } from '../helpers';
+import { useParams } from 'react-router-dom';
+import { NavigationBar, SideBarOfAdmin, ReportModal, ModifyStockDataInADay, UpdateRemainStock, UpdateReportModal } from '../helpers';
 import * as XLSX from 'xlsx';
 import { FaEdit, FaEye, FaPenAlt, FaTrash } from "react-icons/fa";
+import { FaPenToSquare } from 'react-icons/fa6';
+
 import { collection, DocumentData, getDocs, setDoc, doc, getDoc, deleteDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
-import SideBarOfAdmin from '../components/SideBarOfAdmin';
-import UpdateRemainStock from '../components/UpdateRemainStock';
-import ReportModal from '../components/ReportModal';
-import UpdateReportModal from '../components/UpdateReportModal';
-import { FaPenToSquare } from 'react-icons/fa6';
-import { useParams } from 'react-router-dom';
-import ModifyStockDataInADay from '../components/ModifyStockDataInADay';
+
 import LoadingContext from '../contexts/LoadingContext';
 import NotificationContext from '../contexts/NotificationContext';
 
 const StockDetails = () => {
-    const { branchId } = useParams<{ branchId: string }>();
-    const [dayToUpdateReport, setDayToUpdateReport] = useState(0);
-    const [selectedBranch, setSelectedBranch] = useState(branchId || '');
-    const [nameOfBranch, setNameOfBranch] = useState('');
-    const [selectedDate, setSelectedDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`);
-    const [branches, setBranches] = useState<DocumentData[]>([]);
+    const { branchId } = useParams<{ branchId: string }>(); // Get branchId from URL params that passed from the previos page 
+    const [dayToUpdateReport, setDayToUpdateReport] = useState(0); // State to control day to update report and view report on tab 02 
+    const [selectedBranch, setSelectedBranch] = useState(branchId || ''); // State to control selected branch to display accordingly datas
+    const [nameOfBranch, setNameOfBranch] = useState('');  // State to control name of branch to display page title, modal title, etc 
+    const [selectedDate, setSelectedDate] = useState(`${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`); // This state is used to update stock data, delete stock data, add stock data, etc
+    const [branches, setBranches] = useState<DocumentData[]>([]); // State to store all branches that fetched from Firestore
     const [showUpdateRemainStockModal, setShowUpdateRemainStockModal] = useState(false); // State to control modal for updating stock
     const [showUpdateReportModal, setShowUpdateReportModal] = useState(false); // State to control modal for updating report
-    const [modifyStockDataInADay, setModifyStockDataInADay] = useState({
+    const [modifyStockDataInADay, setModifyStockDataInADay] = useState({ // State to control modal for modifying stock data in a day 
         showModal: false,
         currentData: {
             noCupsLeftInTheStore: { '500ml': 0, '700ml': 0, '800ml': 0 },
@@ -35,36 +33,39 @@ const StockDetails = () => {
         dayToModify: "",
         monthToModify: selectedDate.slice(-2),
         yearToModify: selectedDate.slice(0, 4)
-    }); // State to control modal for modifying stock data in a day
-    const [noCupsLeftInTheStore, setNoCupsLeftInTheStore] = useState({ '500ml': 0, '700ml': 0, '800ml': 0 });
+    });
+    const [noCupsLeftInTheStore, setNoCupsLeftInTheStore] = useState({ '500ml': 0, '700ml': 0, '800ml': 0 }); // State to store the number of cups left in the store 
+    // allStockDataInAMonth is an array of tuples. Each tuple contains a string and an object. The string is the day of the month and the object is the stock data of that day
     const [allStockDataInAMonth, setAllStockDataInAMonth] = useState<[string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }][]>([]);
+    // allStock02DataInAMonth is an array of tuples. Each tuple contains a string and an object. The string is the day of the month and the object is the stock data of that day
     const [allStock02DataInAMonth, setAllStock02DataInAMonth] = useState<[string, {
         glassesOnApp: { 'glass800': number; 'lGlass': number; 'mGlass': number }, glassesOnForceMachine: number, initialMoney: string, moneyUsed: string, note: string, remainRevenue: string, revenueOnApp: string, total: string
     }][]>([]);
-    const [tab, setTab] = useState(0);
-    const { open, close } = useContext(LoadingContext);
-    const { setTypeAndMessage } = useContext(NotificationContext);
-    const [reFetchStockData, setReFetchStockData] = useState(false);
-
+    const [tab, setTab] = useState(0); // State to control tab to display stock data or report data 
+    const [reFetchStockData, setReFetchStockData] = useState(false); // State to control re-fetch stock data when update, delete, add stock data
     const [toViewReportModal, setToViewReportModal] = useState({ show: false, index: 0 }); // State to control modal for viewing report
 
+    const { open, close } = useContext(LoadingContext); // context to control loading spinner
+    const { setTypeAndMessage } = useContext(NotificationContext); // context to control notification message 
+
+    // Function to handle show according datas when user choose branch or date 
     const handleChosingBranchAndDate = async () => {
         open();
         const month = selectedDate.slice(-2);
         const year = selectedDate.slice(0, 4);
-        const documentId = `${selectedBranch}${year}${month}`;
-        const docRef = doc(db, 'stocks', documentId);
+        const documentId = `${selectedBranch}${year}${month}`; // Create document id to access stock data in Firestore depend on selected branch and selected date
+        const docRef = doc(db, 'stocks', documentId); // Create document reference to access stock data in Firestore
         try {
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
+            const docSnap = await getDoc(docRef); // Get stock data in a month from Firestore 
+            if (docSnap.exists()) { // If stock data exists in Firestore 
                 const data = docSnap.data();
-                const allData = Object.entries(data);
-                setAllStockDataInAMonth(allData);
+                const allData = Object.entries(data); // Convert object to array of tuples 
+                setAllStockDataInAMonth(allData); // Set all stock data in a month to state 
                 const lastDay = allData.length;
                 const lastDayData = allData[lastDay - 1][1];
-                setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
-                close();
-                fetchStock02Data(`${selectedBranch}${selectedDate.slice(0, 4)}${selectedDate.slice(-2)}02`);
+                setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore); // Set the number of cups left in the store to state 
+                close(); // Close loading spinner
+                fetchStock02Data(`${selectedBranch}${selectedDate.slice(0, 4)}${selectedDate.slice(-2)}02`); // Fetch stock02 data in a month from Firestore
             } else {
                 setAllStockDataInAMonth([]);
                 setAllStock02DataInAMonth([]);
@@ -79,10 +80,11 @@ const StockDetails = () => {
         }
     }
 
+    // Function to fetch stock data (TAB 01) in a month from Firestore
     const fetchStockData = async () => {
         const currentYear = selectedDate.slice(0, 4);
         const currentMonth = selectedDate.slice(-2);
-        const documentId = `${selectedBranch}${currentYear}${currentMonth}`;
+        const documentId = `${selectedBranch}${currentYear}${currentMonth}`; // Create document id to access stock data in Firestore depend on selected branch and selected date
 
         const docRef = doc(db, 'stocks', documentId);
         try {
@@ -90,10 +92,11 @@ const StockDetails = () => {
             if (docSnap.exists()) {
                 const data = docSnap.data();
                 const allData = Object.entries(data);
-                setAllStockDataInAMonth(allData);
+                setAllStockDataInAMonth(allData); // Set all stock data in a month to allStockDataInAMonth state
+
                 const lastDay = allData.length;
                 const lastDayData = allData[lastDay - 1][1];
-                setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore);
+                setNoCupsLeftInTheStore(lastDayData.noCupsLeftInTheStore); // Set the number of cups left of the last day in the store to noCupsLeftInTheStore state
             }
         } catch (error) {
             console.error("Error getting documents: ", error);
@@ -102,66 +105,80 @@ const StockDetails = () => {
 
     }
 
+    // Function to fetch stock02 data (TAB 02) in a month from Firestore
     const fetchStock02Data = async (documentId: string) => {
-        const docRef = doc(db, 'stocks02', documentId);
+        const docRef = doc(db, 'stocks02', documentId); // Create document reference to access stock02 data in Firestore 
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const data = docSnap.data();
-            const allData = Object.entries(data);
-            console.log(allData);
-
-            if (allData[0][1].glassesOnApp !== undefined) {
-                console.log("Runn");
-                console.log(allData[0][1].glassesOnApp.glass800);
-            }
-            setAllStock02DataInAMonth(allData); // Set all stock data in a month to state
+            const allData = Object.entries(data); // Convert object to array of tuples 
+            setAllStock02DataInAMonth(allData); // Set all stock 02 data in a month to allStock02DataInAMonth state
         } else {
             console.log("No such document!");
         }
     }
 
+    // Function to delete stock data in one day 
     const handleDeleteStockDataInOneDay = async (day: string) => {  // Function to delete stock data in one day 
+        /*
+        Summary idea: 
+        - Delete stock data in selected day 
+        - Update stock data in the day after the selected day if it exists (use a number of cups left in the store of the day before the selected day to calculate for the day after the selected day)
+        - Delete stock02 data in selected day. Stock02 data is used to tab 02 which contains datas about revenue, initial money, money used, etc 
+        
+        Detail bewlow:
+         */
+
         const month = selectedDate.slice(-2); // Get the month from selected date 
         const year = selectedDate.slice(0, 4); // Get the year from selected date
-        const deleteReportDataInSomeDay = async () => {
-
-            const documentIdToDeleteStock02Data = `${selectedBranch}${year}${month}02`;
-            const newStock02Data = allStock02DataInAMonth.filter((data) => data[0] !== day);
+        const deleteReportDataInSomeDay = async () => { // Functio to delete stock02 data in selected day 
+            const documentIdToDeleteStock02Data = `${selectedBranch}${year}${month}02`; // Create document id to access stock02 data in Firestore depend on selected branch and selected date
+            const newStock02Data = allStock02DataInAMonth.filter((data) => data[0] !== day); // Filter stock02 data in a month to delete stock02 data in selected day 
             const docRefToDeleteStock02Data = doc(db, 'stocks02', documentIdToDeleteStock02Data);
-            if (newStock02Data.length > 0) {
+            if (newStock02Data.length > 0) { // If stock 02 data in a month is not empty. It means that there is other datas in the month, so we just need to delete stock02 data in selected day
                 await setDoc(docRefToDeleteStock02Data, Object.fromEntries(newStock02Data));
-            } else {
+            } else { // If stock 02 data in a month is empty. It means that there is no other datas in the month, so we need to delete the whole document
                 await deleteDoc(docRefToDeleteStock02Data);
             }
         }
         try {
-            let soLyConLaiTrongNgay: { [key: string]: number } = {}; // The number of cups left in the store on the day to be deleted
+            let soLyConLaiTrongNgay: { [key: string]: number } = {}; // Number of cups left in the store of the day before the selected day. This data is used to calculate for the day after the selected day
+            // obj1 is an object that contains stock data in the day after the selected day. This data is used to calculate for the day after the selected day 
             let obj1 = Object.fromEntries(allStockDataInAMonth);
+
+            // obj2 is an object that contains stock data in the day before the selected day. This data is used to calculate for the day after the selected day
             let obj2 = Object.fromEntries(allStockDataInAMonth);
+
+            // yearToAccessData and monthToAccessData are used to access stock data in the day before the selected day 
+            // For example: If the selected day is 2024-11-01, we need to access stock data in 2024-10-31 or previous to calculate for the day after the selected day. 
             let yearToAccessData = selectedDate.slice(0, 4);
             let monthToAccessData = selectedDate.slice(-2);
+            let ngayTruocNgayBiXoa = (parseInt(day) - 1).toString();  // The day before the day to be deleted
+
+
+            // yearToUpdate and monthToUpdate are used to update stock data in the day after the selected day
+            // For example: If the selected day is 2024-11-01, we need to update stock data in 2024-12-02 or next day 
             let yearToUpdate = selectedDate.slice(0, 4);
             let monthToUpdate = selectedDate.slice(-2);
+            let ngaySauNgayBiXoa = (parseInt(day) + 1).toString(); // The day after the day to be deleted 
 
-            let ngayTruocNgayBiXoa = (parseInt(day) - 1).toString();  // The day before the day to be deleted
-            let ngaySauNgayBiXoa = (parseInt(day) + 1).toString(); // The day after the day to be deleted
+            let flagToTerminateLoop = 0; // Flag to terminate the loop. I use this flag to only find the data of two months before for updating.  
 
-            let flagToTerminateLoop = 0; // Flag to terminate the loop
-
+            // If the day before the selected day is not in the stock data, we need to find the day before the day before the selected day again. 
             while (obj2[`${ngayTruocNgayBiXoa}`] === undefined && flagToTerminateLoop < 2) {
-                if (parseInt(ngayTruocNgayBiXoa) > 0) {
+                if (parseInt(ngayTruocNgayBiXoa) > 0) { // if ngayTruocNgayBiXoa > 0, we just need to reduce 1 day to find the day before the selected day 
                     ngayTruocNgayBiXoa = (parseInt(ngayTruocNgayBiXoa) - 1).toString();
                 }
-                if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData !== '01') {
-                    monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0');
-                    const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`;
+                if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData !== '01') { // if ngayTruocNgayBiXoa < 1 and monthToAccessData !== '01', we need to decrease 1 month and set ngayTruocNgayBiXoa to 31 to find the day before the selected day that has data
+                    monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0'); // decrease 1 month 
+                    const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`; // Create document id to access stock data in Firestore based on month that have just decreased
 
                     const newDocRef = doc(db, 'stocks', newDocumentId);
                     const newDocSnap = await getDoc(newDocRef);
                     if (newDocSnap.exists()) {
                         obj2 = newDocSnap.data();
-                        flagToTerminateLoop += 1;
-                        ngayTruocNgayBiXoa = "31";
+                        flagToTerminateLoop += 1; // Increase 1 when we decrease 1 month
+                        ngayTruocNgayBiXoa = "31"; // Set ngayTruocNgayBiXoa to 31 to find the day before the selected day that has data 
                         console.log("Tháng", monthToAccessData, "có dữ liệu tồn kho");
                     } else if (!newDocSnap.exists()) {
                         flagToTerminateLoop += 1;
@@ -169,10 +186,10 @@ const StockDetails = () => {
                         console.log("Tháng", monthToAccessData, " KHÔNG có dữ liệu tồn kho");
                     }
                 }
-                else if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData === '01') {
-                    console.log("=== '01' runnn ");
-                    yearToAccessData = (parseInt(yearToAccessData) - 1).toString();
-                    monthToAccessData = "12";
+                else if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData === '01') { // if ngayTruocNgayBiXoa < 1 and monthToAccessData === '01', we need to decrease 1 year and set monthToAccessData to 12 to find the day before the selected day that has data
+
+                    yearToAccessData = (parseInt(yearToAccessData) - 1).toString(); // decrease 1 year
+                    monthToAccessData = "12"; // set monthToAccessData to 12
                     const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`;
                     const newDocRef = doc(db, 'stocks', newDocumentId);
                     const newDocSnap = await getDoc(newDocRef);
@@ -186,25 +203,25 @@ const StockDetails = () => {
                 }
             }
 
-            let flagToTerminateLoop2 = 0; // Flag to terminate the loop
+            let flagToTerminateLoop2 = 0; // Flag to only allow to find the data of two months after for updating.
             while (obj1[`${ngaySauNgayBiXoa}`] === undefined && flagToTerminateLoop2 < 2) {
-                ngaySauNgayBiXoa = (parseInt(ngaySauNgayBiXoa) + 1).toString();
-                if (parseInt(ngaySauNgayBiXoa) > 31 && monthToUpdate !== '12') {
+                ngaySauNgayBiXoa = (parseInt(ngaySauNgayBiXoa) + 1).toString(); // Increase 1 day to find the day after the selected day 
+                if (parseInt(ngaySauNgayBiXoa) > 31 && monthToUpdate !== '12') { // if ngaySauNgayBiXoa > 31 and monthToUpdate !== '12', we need to increase 1 month and set ngaySauNgayBiXoa to 1 to find the day after the selected day that has data
                     monthToUpdate = String(parseInt(monthToUpdate) + 1).padStart(2, '0');
                     const newDocumentId = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
                     const newDocRef = doc(db, 'stocks', newDocumentId);
                     const newDocSnap = await getDoc(newDocRef);
                     if (newDocSnap.exists()) {
                         obj1 = newDocSnap.data();
-                        flagToTerminateLoop2 += 1;
+                        flagToTerminateLoop2 += 1; // Increase 1 when we increase 1 month 
                         ngaySauNgayBiXoa = "1";
                     } else if (!newDocSnap.exists()) {
                         flagToTerminateLoop2 += 1;
                     }
 
-                } else if (parseInt(ngaySauNgayBiXoa) > 31 && monthToUpdate === '12') {
-                    yearToUpdate = (parseInt(yearToUpdate) + 1).toString();
-                    monthToUpdate = "01";
+                } else if (parseInt(ngaySauNgayBiXoa) > 31 && monthToUpdate === '12') { // if ngaySauNgayBiXoa > 31 and monthToUpdate === '12', we need to increase 1 year and set monthToUpdate to 01 to find the day after the selected day that has data
+                    yearToUpdate = (parseInt(yearToUpdate) + 1).toString(); // increase 1 year
+                    monthToUpdate = "01"; // set monthToUpdate to 01
                     const newDocumentId = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
                     const newDocRef = doc(db, 'stocks', newDocumentId);
                     const newDocSnap = await getDoc(newDocRef);
@@ -218,20 +235,22 @@ const StockDetails = () => {
                 }
             }
 
-            if (obj2[`${ngayTruocNgayBiXoa}`] !== undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) {
-                soLyConLaiTrongNgay = obj2[`${ngayTruocNgayBiXoa}`].noCupsLeftInTheStore;
+            // TO VAN HUONG - PAUL TO - VIET NAM
+
+            if (obj2[`${ngayTruocNgayBiXoa}`] !== undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) { // If the day before the selected day and the day after the selected day have data. We procce to update
+                soLyConLaiTrongNgay = obj2[`${ngayTruocNgayBiXoa}`].noCupsLeftInTheStore; // Number of cups left in the store of the day before the selected day. This data is used to calculate for the day after the selected day
                 const tongCoTrongNgay = {
                     '500ml': soLyConLaiTrongNgay['500ml'] + obj1[`${ngaySauNgayBiXoa}`].deliveryMore['500ml']
                     , '700ml': soLyConLaiTrongNgay['700ml'] + obj1[`${ngaySauNgayBiXoa}`].deliveryMore['700ml']
                     , '800ml': soLyConLaiTrongNgay['800ml'] + obj1[`${ngaySauNgayBiXoa}`].deliveryMore['800ml']
-                };
+                }; // NEW total cups in the day after the selected day
                 const tongBanDuoc = {
                     '500ml': tongCoTrongNgay['500ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['500ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['500ml']
                     , '700ml': tongCoTrongNgay['700ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['700ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['700ml']
                     , '800ml': tongCoTrongNgay['800ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['800ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['800ml']
-                };
+                }; // NEW total cups sold in the day after the selected day 
 
-                const newStockData = {
+                const newStockData = { // New stock data for the day after
                     ...obj1,
                     [`${ngaySauNgayBiXoa}`]: {
                         noCupsLeftInTheStore: obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore,
@@ -243,15 +262,13 @@ const StockDetails = () => {
                 };
 
                 const documentIdToUpdate = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
-                // const documentIdToUpdate = `${selectedBranch}${year}${month}`;
-
                 const docRefToUpdate = doc(db, 'stocks', documentIdToUpdate);
 
                 try {
-                    if (yearToUpdate === year && monthToUpdate === month) { // 
+                    if (yearToUpdate === year && monthToUpdate === month) { // if the day that we want to delete and the day that we want to update are in the same month and year, we just need to filter the day that we want to delete and update the day that we want to update
                         const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
                         await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
-                    } else {
+                    } else { // if the day that we want to delete and the day that we want to update are not in the same month and year, we need to delete the day that we want to delete before and update the day that we want to update after. 
                         const documentContainsElementIsDeleted = `${selectedBranch}${year}${month}`;
                         const docRefToDelete = doc(db, 'stocks', documentContainsElementIsDeleted);
                         const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
@@ -265,19 +282,19 @@ const StockDetails = () => {
                     setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
                 }
 
-            } else if (obj2[`${ngayTruocNgayBiXoa}`] === undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) {
+            } else if (obj2[`${ngayTruocNgayBiXoa}`] === undefined && obj1[`${ngaySauNgayBiXoa}`] !== undefined) { // If the day before the selected day does not have data and the day after the selected day has data. We just need to delete the day that we want to delete and update the day after the selected day
                 const tongCoTrongNgay = {
                     '500ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['500ml']
                     , '700ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['700ml']
                     , '800ml': obj1[`${ngaySauNgayBiXoa}`].deliveryMore['800ml']
-                };
+                }; // NEW total cups in the day after the selected day
 
                 const tongBanDuoc = {
                     '500ml': tongCoTrongNgay['500ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['500ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['500ml']
                     , '700ml': tongCoTrongNgay['700ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['700ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['700ml']
                     , '800ml': tongCoTrongNgay['800ml'] - obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore['800ml'] - obj1[`${ngaySauNgayBiXoa}`].breakGlass['800ml']
-                };
-                const newStockData = {
+                }; // NEW total cups sold in the day after the selected day
+                const newStockData = { // New stock data for the day after
                     ...obj1,
                     [`${ngaySauNgayBiXoa}`]: {
                         noCupsLeftInTheStore: obj1[`${ngaySauNgayBiXoa}`].noCupsLeftInTheStore,
@@ -291,10 +308,10 @@ const StockDetails = () => {
                 const documentIdToUpdate = `${selectedBranch}${yearToUpdate}${monthToUpdate}`;
                 const docRefToUpdate = doc(db, 'stocks', documentIdToUpdate);
                 try {
-                    if (yearToUpdate === year && monthToUpdate === month) { // 
+                    if (yearToUpdate === year && monthToUpdate === month) { // if the day that we want to delete and the day that we want to update are in the same month and year, we just need to filter the day that we want to delete and update the day that we want to update
                         const newAllStockDataInAMonth = Object.entries(newStockData).filter((data) => data[0] !== day);
                         await setDoc(docRefToUpdate, Object.fromEntries(newAllStockDataInAMonth));
-                    } else {
+                    } else { // if the day that we want to delete and the day that we want to update are not in the same month and year, we need to delete the day that we want to delete before and update the day that we want to update after.
                         const documentContainsElementIsDeleted = `${selectedBranch}${year}${month}`;
                         const docRefToDelete = doc(db, 'stocks', documentContainsElementIsDeleted);
                         const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
@@ -302,30 +319,32 @@ const StockDetails = () => {
                         await setDoc(docRefToUpdate, newStockData);
 
                     }
-                    deleteReportDataInSomeDay();
+                    deleteReportDataInSomeDay(); // Delete stock02 data in selected day 
                 } catch (error) {
                     console.error("Error getting documents: ", error);
                     setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
                 }
-            } else {
-                if (monthToUpdate !== month && yearToUpdate !== year) {
+            } else { // If the day before the selected day and the day after the selected day do not have data. We just need to delete the day that we want to delete
+                if (monthToUpdate !== month && yearToUpdate !== year) { // if the day that we want to delete and the day that we want to update are not in the same month and year, we only to delete the day that we want to delete 
                     const documentToDeleteStockData = `${selectedBranch}${year}${month}`;
                     const docRefToDeleteStockData = doc(db, 'stocks', documentToDeleteStockData);
                     const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
                     await setDoc(docRefToDeleteStockData, Object.fromEntries(newAllStockDataInAMonth));
-                    deleteReportDataInSomeDay();
+                    deleteReportDataInSomeDay(); // Delete stock02 data in selected day
                 }
             }
-            setReFetchStockData(!reFetchStockData);
-            setTypeAndMessage('success', 'Xóa dữ liệu thành công!');
+            setReFetchStockData(!reFetchStockData); // Re-fetch stock data in a month from Firestore to display updated data on screen
+            setTypeAndMessage('success', 'Xóa dữ liệu thành công!'); // Display success message 
         } catch (error) {
-            setReFetchStockData(!reFetchStockData);
-            console.error("Error getting documents: ", error);
+            setReFetchStockData(!reFetchStockData); // Re-fetch stock data in a month from Firestore to display updated data on screen
+            console.error("Error getting documents: ", error); // Display error message 
             setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
         }
     }
 
+    // Function to export data in a month to excel file
     const exportToExcel = () => {
+        // Convert data to the format that XLSX can understand 
         const data = allStockDataInAMonth.map((data: [string, { noCupsLeftInTheStore: { '500ml': number; '700ml': number; '800ml': number }; deliveryMore: { '500ml': number; '700ml': number; '800ml': number }; totalNoCupsPerDay: { '500ml': number; '700ml': number; '800ml': number }; totalCupsSole: { '500ml': number; '700ml': number; '800ml': number }; breakGlass: { '500ml': number; '700ml': number; '800ml': number } }]) => {
             return {
                 'Ngày': data[0],
@@ -347,16 +366,16 @@ const StockDetails = () => {
             };
         });
 
-        const worksheet = XLSX.utils.json_to_sheet(data);
-        const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Data");
+        const worksheet = XLSX.utils.json_to_sheet(data); // Convert data to worksheet
+        const workbook = XLSX.utils.book_new(); // Create a new workbook 
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Stock Data"); // Append worksheet to workbook 
 
         const now = new Date();
         const formattedDate = now.toISOString().slice(0, 10); // Format: YYYY-MM-DD
         const formattedTime = now.toTimeString().slice(0, 8).replace(/:/g, '-'); // Format: HH-MM-SS
-        const filename = `StockData_${formattedDate}_${formattedTime}.xlsx`;
+        const filename = `StockData_${formattedDate}_${formattedTime}.xlsx`; // Filename of the exported file 
 
-        XLSX.writeFile(workbook, filename);
+        XLSX.writeFile(workbook, filename); // Write file to download 
     };
 
     useEffect(() => {
@@ -374,10 +393,10 @@ const StockDetails = () => {
 
             }
 
-        }
-        fetchStockData();
-        fetchStock02Data(`${selectedBranch}${selectedDate.slice(0, 4)}${selectedDate.slice(-2)}02`);
-        getAllBranches();
+        }  // Function to get all branches from Firestore 
+        fetchStockData(); // Fetch stock data in a month from Firestore for TAB 01
+        fetchStock02Data(`${selectedBranch}${selectedDate.slice(0, 4)}${selectedDate.slice(-2)}02`); // Fetch stock02 data in a month from Firestore for TAB 02
+        getAllBranches(); // Get all branches from Firestore
     }, [reFetchStockData]);
 
     useEffect(() => {
@@ -391,7 +410,7 @@ const StockDetails = () => {
                     setNameOfBranch(branch.name);
                 }
             }
-        });
+        }); // Set name of branch to display page title, modal title, etc 
     }, [selectedBranch, branchId, branches]);
 
     return (
@@ -619,3 +638,5 @@ const StockDetails = () => {
 };
 
 export default StockDetails;
+
+// TO VAN HUONG - PAUL TO - VIET NAM

@@ -10,17 +10,23 @@ import { doc, updateDoc } from 'firebase/firestore/lite';
 import SideBarOfAdmin from '../../components/SideBarOfAdmin';
 
 const AddStaff = () => {
+  // four states to store the input values from the form 
   const [branchCode, setBranchCode] = useState('');
   const [staffCode, setStaffCode] = useState('');
   const [staffName, setStaffName] = useState('');
   const [password, setPassword] = useState('');
+
+  // two states to store error message and modal state 
   const [error,] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // a state to store the selected staff to edit
   const [selectedStaff, setSelectedStaff] = useState({ id: '', branchCode: '', staffCode: '', staffName: '', password: '', createdAt: '' });
 
   const { setDataToDelete } = useContext(ConfirmContext);
   const { setTypeAndMessage } = useContext(NotificationContext);
   const { open, close } = useContext(LoadingContext);
+
   interface Staff {
     id: string;
     branchCode: string;
@@ -30,7 +36,7 @@ const AddStaff = () => {
     createdAt: string;
   }
 
-  const [staffs, setStaffs] = useState<Staff[]>([]);
+  const [staffs, setStaffs] = useState<Staff[]>([]); // State to store staff list fetched from Firestore
 
   useEffect(() => {
     const fetchStaffs = async () => {

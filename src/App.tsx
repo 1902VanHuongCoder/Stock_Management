@@ -1,26 +1,12 @@
 import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-// import { useContext } from 'react';
-// import SideBarContext from './contexts/SideBarContext';
-import { ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
-import ApprovePage from './pages/ApprovePage';
-
+import { ApprovePage, ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
+// TO VAN HUONG - PAUL TO - VIET NAM
 const App = () => {
-  // const navigate = useNavigate();
-  // const { isOpen } = useContext(SideBarContext);
-  // const userId = localStorage.getItem('userId');
-
-  // useEffect(() => {
-  //   if (userId) { // If user is logged in, redirect to home page
-  //     navigate('/');
-  //   } else {
-  //     navigate('/dangnhap'); // If user is not logged in, redirect to login page
-  //   }
-  // }, [navigate, userId]);
   return (
     <div className='relative'>
-      <Notification />
-      <SideBar />
+      <Notification /> {/* Notification coponent */}
+      <SideBar /> {/* SideBar component */}
       <Loading />
       <ConfirmDialog />
       <AuthProvider>
@@ -29,6 +15,7 @@ const App = () => {
           <Route path="/quanly/dangnhap" element={<ALogin />} />
           <Route path="/nhanvien/dangnhap" element={<NLogin />} />
           <Route path="/home" element={<Home />} />
+          {/* TO VAN HUONG - PAUL TO - VIET NAM */}
           <Route path="/quanly/nguyenkiet" element={<AdminDashboard />} />
           <Route path="/quanly/nguyenkiet/chinhanh/:branchId" element={<StockDetails />} />
           <Route path="/nhanvien/capnhattonkho" element={<AddStockInfo />} />
@@ -36,7 +23,6 @@ const App = () => {
           <Route path="/quanly/capnhatchinhanh/:id" element={<UpdateBranch />} />
           <Route path="/quanly/duyetthongtin" element={<ApprovePage />} />
           <Route path="/nhanvien/kho" element={<StaffDashboard />} />
-
           <Route path="/dangnhap" element={<AdminDashboard />} />
           <Route path="/employee" element={<EmployeeDashboard />} />
 
@@ -50,3 +36,5 @@ const App = () => {
 };
 
 export default App;
+
+// TO VAN HUONG - PAUL TO - VIET NAM
