@@ -495,7 +495,6 @@ const StockDetails = () => {
                         </div>
                         {tab === 0 && <div className='overflow-x-auto mt-5'>
                             <div className='flex items-center justify-end gap-x-4 py-4 px-2 text-white italic'>
-                                <p>Ghi chú:</p>
                                 <div className='flex gap-x-2 items-center '><span className="text-blue-500"><FaEdit /> </span><span>Nút cập nhật kho</span></div>
                                 <div className='flex gap-x-2 items-center '><span className="text-red-500"><FaTrash /> </span><span>Nút xóa kho</span></div>
 
@@ -564,11 +563,9 @@ const StockDetails = () => {
                                 <button onClick={exportToExcel} className='border-[3px] border-solid border-slate-800 px-6 py-3 rounded-lg outline-none bg-[#FFEC59] font-bold hover:shadow-xl cursor-pointer transition-all'>XUẤT DỮ LIỆU THÁNG</button> </div>
                         </div>}
                         {tab === 1 && <div className='overflow-x-auto mt-10'>
-                            <div className='flex items-center justify-end gap-x-4 py-4 px-2 text-white italic'>
-                                <p>Ghi chú:</p>
+                            <div className='flex items-center justify-end  gap-x-4 py-4 px-2 text-white italic'>
                                 <div className='flex gap-x-2 items-center '><span className="text-blue-500"><FaEye /> </span><span>Nút xem báo cáo</span></div>
                                 <div className='flex gap-x-2 items-center '><span className="text-[#dfca2b] hover:text-[#FFEC59]"><FaPenToSquare /> </span><span>Nút cập nhật báo cáo</span></div>
-
                             </div>
                             <table className='min-w-full bg-white'>
                                 <thead className='bg-[rgb(8,110,89)] text-white drop-shadow-lg'>

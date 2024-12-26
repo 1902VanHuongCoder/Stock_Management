@@ -1,4 +1,3 @@
-import logo from '../assets/cat+icon.png'
 import { IoHome } from "react-icons/io5";
 import { BsFillPeopleFill } from "react-icons/bs";
 import { RiLogoutBoxLine } from 'react-icons/ri';
@@ -7,6 +6,7 @@ import { FaBell } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { collection, getDocs } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
+import { CatDrinksMilkTeaGif } from "../helpers";
 const SideBarOfAdmin = () => {
 
     const navigate = useNavigate();
@@ -32,7 +32,7 @@ const SideBarOfAdmin = () => {
     return (
         <div className='hidden sm:flex basis-1/5  bg-[#2a2f2a] shadow-lg flex-col justify-between h-screen w-[20%] fixed top-0 left-0'>
             <div className='flex items-center justify-between px-6 py-4 bg-[rgba(0,0,0,.5)] h-[80px] border-r-[1px] border-r-solid border-r-[rgba(255,255,255,.1)]'>
-                <div className='h-[50px] w-[50px]'><img src={logo} alt='cat+icon' className='w-full h-full' /></div>
+                <div className='h-[50px] w-[50px]'><img src={CatDrinksMilkTeaGif} alt='cat+icon' className='w-full h-full' /></div>
                 <div> <p className='text-xl'><span className="font-bold text-[#D2FF72] drop-shadow-md">NGUYỄN</span> <span className="text-white drop-shadow-md font-bold">KIỆT</span></p></div>
             </div>
             <div className='px-4 py-4 h-full'>

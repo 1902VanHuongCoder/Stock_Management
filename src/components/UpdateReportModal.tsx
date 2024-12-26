@@ -12,7 +12,7 @@ const UpdateReportModal = ({ closeModal, branchName, dayToUpdateReport, branchId
         noOnForcingMachine: 0,
         total: 0,
         moneyUsed: 0,
-        initialMoney: 0,
+        initialMoney: 1000000,
     });
     const { setTypeAndMessage } = useContext(NotificationContext); // Get the function to set the notification message
     const { open, close } = useContext(LoadingContext); // Get the function to open and close the loading modal

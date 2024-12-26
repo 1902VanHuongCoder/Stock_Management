@@ -315,7 +315,7 @@ const ApprovePage = () => {
                     <p className='w-full px-5 flex items-center'>
                         <span className='w-[10px] h-[40px] sm:h-[50px] bg-[#D2FF72] inline-block'></span>
                         <span className='w-full bg-[rgba(0,0,0,.5)] flex items-center pl-2 sm:pl-5 h-[40px] sm:h-[50px] text-xl sm:text-2xl text-white font-medium sm:ml-2'>
-                            <span className=''>CẬP NHẬT CHI NHÁNH</span>
+                            <span className=''>DUYỆT THÔNG TIN TỒN KHO</span>
                         </span>
                     </p>
                 </div>

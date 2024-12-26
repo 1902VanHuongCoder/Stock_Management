@@ -3,7 +3,7 @@ import { db } from '../../services/firebaseConfig'; // Import the db object from
 import { collection, getDocs } from 'firebase/firestore/lite'; // Import the getFirestore, collection, and getDocs functions from the lite version of the Firebase SDK
 import { useNavigate } from 'react-router-dom';
 import { useContext, useState } from 'react';
-import { CatIcon } from '../../helpers';
+import { CatDrinksMilkTeaGif } from '../../helpers';
 import LoadingContext from '../../contexts/LoadingContext';
 import NotificationContext from '../../contexts/NotificationContext';
 
@@ -63,6 +63,7 @@ const ALogin = () => {
                 setTypeAndMessage('fail', 'Tên đăng nhập hoặc mật khẩu không đúng');
             }
         } catch (error) {
+            close();
             console.log('Error signing in: ', error);
             setTypeAndMessage('fail', 'Kết nối mạng không ổn định! Vui lòng thử lại!');
         }
@@ -71,7 +72,7 @@ const ALogin = () => {
     return (
         <Container>
             <div>
-                <img src={CatIcon} alt="logo" className="w-20 h-20" />
+                <img src={CatDrinksMilkTeaGif} alt="logo" className="w-20 h-20" />
             </div>
             <h1 className="text-3xl text-center font-bold text-[#D2FF72] drop-shadow-lg">ĐĂNG NHẬP</h1>
             <div className="flex justify-center items-center h-full">
@@ -106,7 +107,7 @@ const ALogin = () => {
                         {passwordError && <p className="text-red-500 text-sm mt-1 drop-shadow-2xl">{passwordError}</p>}
                     </div>
                     {error && <p className="text-red-500 text-center mb-4  drop-shadow-2xl uppercase">{error}</p>}
-                    <div>
+                    <div className='flex justify-end'>
                         <button className=" py-2 px-6 text-[#15B392] bg-white border-solid border-[4px] border-[#D2FF72] shadow-inner font-semibold rounded-lg hover:bg-[#15B392] hover:text-white cursor-pointer transition-all">ĐĂNG NHẬP</button>
                     </div>
                 </form>

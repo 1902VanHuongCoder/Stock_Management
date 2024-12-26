@@ -15,7 +15,7 @@ const Home = () => {
     const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [days, setDays] = useState<number[]>([]);
 
-    const [noGlassInDay, setNoGlassInDay] = useState({
+    const [noGlassInDay, setNoGlassInDay] = useState({ // This state 
         cups500ml: 0,
         cups700ml: 0,
         cups800ml: 0
@@ -117,47 +117,6 @@ const Home = () => {
                                 </select>
                             </div>
                             <div className="sm:flex sm:gap-x-4">
-                                <div className="p-0 sm:p-4 rounded-lg">
-                                    <p className="text-black py-4">Hàng tồn kho trong ngày hôm nay <span className="text-red-500">(*)</span></p>
-                                    <div className="flex gap-x-3">
-                                        <div className='mb-4'>
-                                            <label htmlFor="cups500ml" className='block font-medium mb-2 text-[#15B392]'>500ml</label>
-                                            <input
-                                                type="number"
-                                                id="cups500ml"
-                                                value={noGlassInDay.cups500ml}
-                                                onChange={(e) => setNoGlassInDay({ ...noGlassInDay, cups500ml: parseInt(e.target.value) })}
-                                                className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                                required
-                                                min={0}
-                                            />
-                                        </div>
-                                        <div className='mb-4'>
-                                            <label htmlFor="cups700ml" className='block font-medium mb-2 text-[#15B392]'>700ml</label>
-                                            <input
-                                                type="number"
-                                                id="cups700ml"
-                                                value={noGlassInDay.cups700ml}
-                                                onChange={(e) => setNoGlassInDay({ ...noGlassInDay, cups700ml: parseInt(e.target.value) })}
-                                                className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                                required
-                                                min={0}
-                                            />
-                                        </div>
-                                        <div className='mb-4'>
-                                            <label htmlFor="cups800ml" className='block font-medium mb-2 text-[#15B392]'>800ml</label>
-                                            <input
-                                                type="number"
-                                                id="cups800ml"
-                                                value={noGlassInDay.cups800ml}
-                                                onChange={(e) => setNoGlassInDay({ ...noGlassInDay, cups800ml: parseInt(e.target.value) })}
-                                                className='w-full p-3 rounded-lg border border-gray-300 outline-none'
-                                                required
-                                                min={0}
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <div className="p-0 sm:p-4 rounded-lg">
                                     <p className="text-black py-4">Hàng giao thêm cho kho <span className="text-red-500">(*)</span></p>
@@ -193,6 +152,48 @@ const Home = () => {
                                                 id="deliveryCups800ml"
                                                 value={deliveryMore.cups800ml}
                                                 onChange={(e) => setDeliveryMore({ ...deliveryMore, cups800ml: parseInt(e.target.value) })}
+                                                className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                                required
+                                                min={0}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-0 sm:p-4 rounded-lg">
+                                    <p className="text-black py-4">Hàng tồn kho trong ngày hôm nay <span className="text-red-500">(*)</span></p>
+                                    <div className="flex gap-x-3">
+                                        <div className='mb-4'>
+                                            <label htmlFor="cups500ml" className='block font-medium mb-2 text-[#15B392]'>500ml</label>
+                                            <input
+                                                type="number"
+                                                id="cups500ml"
+                                                value={noGlassInDay.cups500ml}
+                                                onChange={(e) => setNoGlassInDay({ ...noGlassInDay, cups500ml: parseInt(e.target.value) })}
+                                                className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                                required
+                                                min={0}
+                                            />
+                                        </div>
+                                        <div className='mb-4'>
+                                            <label htmlFor="cups700ml" className='block font-medium mb-2 text-[#15B392]'>700ml</label>
+                                            <input
+                                                type="number"
+                                                id="cups700ml"
+                                                value={noGlassInDay.cups700ml}
+                                                onChange={(e) => setNoGlassInDay({ ...noGlassInDay, cups700ml: parseInt(e.target.value) })}
+                                                className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                                required
+                                                min={0}
+                                            />
+                                        </div>
+                                        <div className='mb-4'>
+                                            <label htmlFor="cups800ml" className='block font-medium mb-2 text-[#15B392]'>800ml</label>
+                                            <input
+                                                type="number"
+                                                id="cups800ml"
+                                                value={noGlassInDay.cups800ml}
+                                                onChange={(e) => setNoGlassInDay({ ...noGlassInDay, cups800ml: parseInt(e.target.value) })}
                                                 className='w-full p-3 rounded-lg border border-gray-300 outline-none'
                                                 required
                                                 min={0}

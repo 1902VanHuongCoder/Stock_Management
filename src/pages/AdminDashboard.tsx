@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { NavigationBar, SideBarOfAdmin } from '../helpers';
 
 import { db } from '../services/firebaseConfig';
-import { collection, addDoc, DocumentData, getDocs } from 'firebase/firestore/lite';
+import { collection, addDoc, getDocs, Timestamp } from 'firebase/firestore/lite';
 
 
 import NotificationContextType from '../contexts/NotificationContext';
@@ -14,6 +14,16 @@ import { MdDelete } from "react-icons/md";
 import { FaPenToSquare } from "react-icons/fa6";
 import { FaPlusCircle } from "react-icons/fa";
 import { uploadImage } from '../cloudinary';
+
+type Branch = {
+    createdAt: Timestamp | string;
+    branchImage: string;
+    branchImagePublicId: string;
+    name: string;
+    password: string;
+    branchId: string;
+    id: string;
+};
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); // Hook for navigation
@@ -26,7 +36,7 @@ const AdminDashboard = () => {
     const [password, setPassword] = useState('');
     const [img, setImg] = useState<File | null>(null);
 
-    const [branches, setBranches] = useState<DocumentData[]>([]); // state to store branches that fetched from Firestore 
+    const [branches, setBranches] = useState<{ createdAt: Timestamp | string; branchImage: string; branchImagePublicId: string; name: string; password: string; branchId: string; id: string; }[]>([]); // state to store branches that fetched from Firestore 
 
     const { setTypeAndMessage } = useContext(NotificationContextType); // Context for notification
     const { open, close } = useContext(LoadingContext); // Context for loading
@@ -68,7 +78,10 @@ const AdminDashboard = () => {
             });
 
             const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
-            const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
+            const branches = querySnapshot.docs.map((doc) => {
+                const data = doc.data();
+                return { ...data, id: doc.id, createdAt: data.createdAt, branchImage: data.branchImage, branchImagePublicId: data.branchImagePublicId, name: data.name, password: data.password, branchId: data.branchId };
+            }); // Map data from Firestore to branches array
             setBranches(branches);
             setTypeAndMessage('success', 'Thêm chi nhánh thành công!');
             setBranchName(''); // Reset branch name
@@ -116,8 +129,17 @@ const AdminDashboard = () => {
         const getAllBranches = async () => {
             open(); // Open loading
             try {
-                const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore
-                const branches = querySnapshot.docs.map((doc) => { return { ...doc.data(), id: doc.id } }); // Map data from Firestore to branches array
+                const querySnapshot = await getDocs(collection(db, 'branches')); // Get all branches from Firestore
+                const branches = querySnapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return { ...data, id: doc.id, createdAt: data.createdAt };
+                }) as Branch[]; // Map data from Firestore to branches array
+
+                console.log(branches);
+
+                // Sort branches by createdAt timestamp in descending order by default
+                sortBranchesByTimeDescending(branches);
+
                 setBranches(branches);
                 close(); // Close loading
             } catch (error) {
@@ -125,10 +147,31 @@ const AdminDashboard = () => {
                 setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
                 close(); // Close loading
             }
-
-        }
+        };
         getAllBranches();
-    }, [])
+    }, []);
+
+    const getTime = (createdAt: Timestamp | string | Date): number => { // Get time from createdAt field in branch object to sort branches
+        if (createdAt instanceof Timestamp) {
+            return createdAt.toMillis();
+        } else if (typeof createdAt === 'string') {
+            return new Date(createdAt).getTime();
+        } else if (createdAt instanceof Date) {
+            return createdAt.getTime();
+        }
+        return 0;
+    };
+
+    const sortBranchesByTimeDescending = (branches: Branch[]) => {
+        branches.sort((a, b) => getTime(b.createdAt) - getTime(a.createdAt)); // Descending order
+        setBranches([...branches]); // Update state with sorted branches
+    };
+
+    const sortBranchesByTimeAscending = (branches: Branch[]) => {
+        branches.sort((a, b) => getTime(a.createdAt) - getTime(b.createdAt)); // Ascending order
+        setBranches([...branches]); // Update state with sorted branches
+    };
+
 
     return (
         <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
@@ -144,18 +187,26 @@ const AdminDashboard = () => {
                 <div className='w-full h-fit flex justify-end px-5 pt-5'>
                     <button onClick={handleOpenModal} className='border-[3px] border-solid border-slate-800 hover:shadow-xl transition-all uppercase flex justify-center items-center px-3 sm:px-5 sm:text-lg bg-white py-2 sm:py-4 gap-x-2 font-bold rounded-md shadow-md cursor-pointer'><span><FaPlusCircle /></span>Thêm chi nhánh</button>
                 </div>
+                <div className='px-5 flex flex-col gap-y-2 mt-5'>
+                    <p className='text-white'>Sắp xếp theo</p>
+                    <div className='flex gap-x-2'>
+                        <button className='px-4 py-2 bg-white rounded-md' onClick={() => sortBranchesByTimeAscending(branches)}>Cũ nhất</button>
+                        <button className='px-4 py-2 bg-white rounded-md' onClick={() => sortBranchesByTimeDescending(branches)}>Mới nhất</button>
+                    </div>
+
+                    {/* Your existing JSX to display branches */}
+                </div>
                 {/* onClick={() => handleNavigate("123")} */}
                 <div className='w-full h-fit grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-6 pt-5 px-5' >
                     {branches.map((branch, index) => (
-                        <div key={index} className='sm:bg-[rgba(0,0,0,.5)] bg-[rgba(0,0,0,.2)] flex items-start mb-4 flex-col gap-y-2 group cursor-pointer'>
-                            <div onClick={() => handleNavigateToStockDetail(branch.id)} className='bg-white w-full p-2 sm:p-2 border-solid border-[rgba(0,0,0,.5)] border-[2px]'>
-                                <div className='w-full h-[100px] sm:h-[200px] p-2 d overflow-hidden border-solid border-[1px] border-slate-300 shadow-md'>
-                                    <div className='w-full h-full overflow-hidden'>
-                                        <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
-                                    </div></div>
+                        <div key={index} className='sm:bg-[rgba(0,0,0,.5)] bg-[rgba(0,0,0,.2)] flex items-start mb-4 flex-col gap-y-2 group cursor-pointer rounded-md p-2'>
+
+                            <div onClick={() => handleNavigateToStockDetail(branch.id)} className='w-full h-[100px] sm:h-[200px] rounded-md overflow-hidden'>
+                                <img src={branch.branchImage} alt={branch.name} className='w-full h-full object-cover group-hover:scale-110 transition-all' />
                             </div>
-                            <span className='text-white font-bold pl-2 text-lg uppercase sm:text-2xl sm:w-full sm:text-center sm:py-3'>{branch.name}</span>
-                            <div className='flex gap-x-4 justify-between w-full px-2 pb-2'>
+
+                            <div className='text-white font-bold pl-2 text-lg uppercase sm:text-2xl sm:w-full text-center sm:py-3 w-full'>{String(index + 1).padStart(2, "0")} - {branch.name}</div>
+                            <div className='flex gap-x-4 justify-between w-full px-2'>
                                 <button className='text-white font-bold text-2xl hover:text-red-600' onClick={() => handleDeleteBranch(branch.id, branch.branchImagePublicId)}><MdDelete /></button>
                                 <button className='text-white font-bold text-2xl hover:text-yellow-400' onClick={() => handleUpdateBranch(branch.id)}> <FaPenToSquare /> </button>
                             </div>

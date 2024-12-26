@@ -50,7 +50,7 @@ export const ConfirmProvider = ({ children }: { children: React.ReactNode }) => 
         try {
             await deleteDoc(doc(db, collectionToDelete, idToDelete));
             setTypeAndMessage('success', 'Xóa mục thành công!');
-            window.location.reload();
+
         } catch (error) {
             console.log(error);
             setTypeAndMessage('fail', 'Lỗi trong quá trình xóa mục này! Hãy thử lại sau!');
