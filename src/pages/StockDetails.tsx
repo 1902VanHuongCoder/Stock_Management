@@ -8,12 +8,25 @@ import { FaPenToSquare } from 'react-icons/fa6';
 
 import { collection, DocumentData, getDocs, setDoc, doc, getDoc, deleteDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
+import { Timestamp } from 'firebase/firestore';
 
 import LoadingContext from '../contexts/LoadingContext';
 import NotificationContext from '../contexts/NotificationContext';
+import { IoMdRefresh } from 'react-icons/io';
+
+type Branch = {
+    createdAt: Timestamp | string;
+    branchImage: string;
+    branchImagePublicId: string;
+    name: string;
+    password: string;
+    branchId: string;
+    id: string;
+};
 
 const StockDetails = () => {
     const { branchId } = useParams<{ branchId: string }>(); // Get branchId from URL params that passed from the previos page 
+    const [refresh, setRefresh] = useState(false); // State to control refresh button to re-fetch branches from Firestore
     const [dayToUpdateReport, setDayToUpdateReport] = useState(0); // State to control day to update report and view report on tab 02 
     const [selectedBranch, setSelectedBranch] = useState(branchId || ''); // State to control selected branch to display accordingly datas
     const [nameOfBranch, setNameOfBranch] = useState('');  // State to control name of branch to display page title, modal title, etc 
@@ -179,11 +192,9 @@ const StockDetails = () => {
                         obj2 = newDocSnap.data();
                         flagToTerminateLoop += 1; // Increase 1 when we decrease 1 month
                         ngayTruocNgayBiXoa = "31"; // Set ngayTruocNgayBiXoa to 31 to find the day before the selected day that has data 
-                        console.log("Tháng", monthToAccessData, "có dữ liệu tồn kho");
                     } else if (!newDocSnap.exists()) {
                         flagToTerminateLoop += 1;
                         ngayTruocNgayBiXoa = "0";
-                        console.log("Tháng", monthToAccessData, " KHÔNG có dữ liệu tồn kho");
                     }
                 }
                 else if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData === '01') { // if ngayTruocNgayBiXoa < 1 and monthToAccessData === '01', we need to decrease 1 year and set monthToAccessData to 12 to find the day before the selected day that has data
@@ -378,26 +389,48 @@ const StockDetails = () => {
         XLSX.writeFile(workbook, filename); // Write file to download 
     };
 
+    const getTime = (createdAt: Timestamp | string | Date): number => { // Get time from createdAt field in branch object to sort branches
+        if (createdAt instanceof Timestamp) {
+            return createdAt.toMillis();
+        } else if (typeof createdAt === 'string') {
+            return new Date(createdAt).getTime();
+        } else if (createdAt instanceof Date) {
+            return createdAt.getTime();
+        }
+        return 0;
+    };
+
+    const sortBranchesByTimeAscending = (branches: Branch[]) => {
+        branches.sort((a, b) => getTime(a.createdAt) - getTime(b.createdAt)); // Ascending order
+        setBranches([...branches]); // Update state with sorted branches
+    };
+
+
     useEffect(() => {
         const getAllBranches = async () => {
+            open(); // Open loading
             try {
-                const querySnapshot = await getDocs(collection(db, 'branches')) // Get all branches from Firestore 
+                const querySnapshot = await getDocs(collection(db, 'branches')); // Get all branches from Firestore
                 const branches = querySnapshot.docs.map((doc) => {
                     const data = doc.data();
-                    return { id: doc.id, name: data.name };
-                }); // Map data from Firestore to branches array
+                    return { ...data, id: doc.id, createdAt: data.createdAt };
+                }) as Branch[]; // Map data from Firestore to branches array
+
+                // Sort branches by createdAt timestamp in descending order by default
+                sortBranchesByTimeAscending(branches);
+
                 setBranches(branches);
+                close(); // Close loading
             } catch (error) {
-                setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
-                console.error("Error getting documents: ", error);
-
+                console.error("Lỗi khi lấy dữ liệu chi nhánh:", error);
+                setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
+                close(); // Close loading
             }
-
-        }  // Function to get all branches from Firestore 
+        };
         fetchStockData(); // Fetch stock data in a month from Firestore for TAB 01
         fetchStock02Data(`${selectedBranch}${selectedDate.slice(0, 4)}${selectedDate.slice(-2)}02`); // Fetch stock02 data in a month from Firestore for TAB 02
         getAllBranches(); // Get all branches from Firestore
-    }, [reFetchStockData]);
+    }, [reFetchStockData, refresh]);
 
     useEffect(() => {
         branches.forEach((branch) => {
@@ -411,7 +444,7 @@ const StockDetails = () => {
                 }
             }
         }); // Set name of branch to display page title, modal title, etc 
-    }, [selectedBranch, branchId, branches]);
+    }, [selectedBranch, branchId, branches, refresh]);
 
     return (
         <div className='relative min-h-screen max-w-screen sm:flex sm:justify-end bg-[#15b392]' >
@@ -485,8 +518,9 @@ const StockDetails = () => {
                             <p className='text-center sm:text-xl'>Ly 800ml size lớn</p>
                         </div>
                     </div>
-                    <div onClick={() => { setShowUpdateRemainStockModal(true) }} className='w-full h-fit flex justify-end mt-12'>
-                        <button className='border-[3px] border-solid border-white flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-blue-500 text-white py-2 gap-x-2 font-bold rounded-md hover:shadow-lg transition-all cursor-pointer uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
+                    <div className='w-full h-fit flex justify-end mt-12 gap-x-2'>
+                        <button className='px-4 py-2 bg-yellow-400 rounded-md flex items-center gap-x-2 ' onClick={() => setRefresh(!refresh)}>Làm mới <IoMdRefresh /></button>
+                        <button onClick={() => { setShowUpdateRemainStockModal(true) }} className='border-[3px] border-solid border-white flex justify-center items-center px-3 sm:px-5 sm:py-4 sm:text-lg bg-blue-500 text-white py-2 gap-x-2 font-bold rounded-md hover:shadow-lg transition-all cursor-pointer uppercase'><span><FaPenAlt /></span>Cập nhật tồn kho</button>
                     </div>
                     <div className='pt-5 mt-5 pb-10'>
                         <div className='flex items-center gap-x-4'>

@@ -25,4 +25,5 @@ import UpdateReportModal from './components/UpdateReportModal';
 import ModifyStockDataInADay from './components/ModifyStockDataInADay';
 import ApprovePage from './pages/ApprovePage';
 import Container from './components/Container';
-export { Container, CatDrinksMilkTeaGif, ApprovePage, ModifyStockDataInADay, UpdateReportModal, ReportModal, UpdateRemainStock, SideBarOfAdmin, ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, AddStaff, StockDetails, AddStockInfo };
+import ApprovePageTab02 from './pages/ApprovePageTab02';
+export { ApprovePageTab02, Container, CatDrinksMilkTeaGif, ApprovePage, ModifyStockDataInADay, UpdateReportModal, ReportModal, UpdateRemainStock, SideBarOfAdmin, ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, ALogin, Introduction, Home, EmployeeDashboard, AdminDashboard, CatIcon, NavigationBar, AddStaff, StockDetails, AddStockInfo };

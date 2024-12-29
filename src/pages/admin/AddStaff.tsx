@@ -8,8 +8,10 @@ import NotificationContext from '../../contexts/NotificationContext';
 import LoadingContext from '../../contexts/LoadingContext';
 import { doc, updateDoc } from 'firebase/firestore/lite';
 import SideBarOfAdmin from '../../components/SideBarOfAdmin';
+import { IoMdRefresh } from 'react-icons/io';
 
 const AddStaff = () => {
+  const [refresh, setRefresh] = useState(false);
   // four states to store the input values from the form 
   const [branchCode, setBranchCode] = useState('');
   const [staffCode, setStaffCode] = useState('');
@@ -54,7 +56,6 @@ const AddStaff = () => {
             createdAt: data.createdAt,
           };
         });
-        console.log(staffList)
         setStaffs(staffList);
         close();// Hide loading backdrop
       } catch (error) {
@@ -65,7 +66,7 @@ const AddStaff = () => {
     };
 
     fetchStaffs();
-  }, []);
+  }, [refresh]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,6 +309,9 @@ const AddStaff = () => {
               <span className=''>DANH SÁCH NHÂN VIÊN</span>
             </span>
           </p>
+        </div>
+        <div className='w-full pt-10 px-6'>
+          <button className='px-4 py-2 bg-yellow-400 rounded-md flex items-center gap-x-2 ' onClick={() => setRefresh(!refresh)}>Làm mới <IoMdRefresh /></button>
         </div>
         <div className='px-6 pt-10 pb-6 w-screen overflow-x-auto'>
           <table className='w-[1024px] bg-white border-gray-300 rounded-md'>

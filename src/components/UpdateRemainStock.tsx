@@ -286,10 +286,9 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch, r
         const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
         setDays(daysArray);
 
-        console.log("Render");
-
     }, [yearAndMonthToUpdate]);
-    console.log("1");
+
+    console.log("Run");
 
     return (
         <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center bg-[rgba(0,0,0,.8)]'>

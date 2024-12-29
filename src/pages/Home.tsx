@@ -15,6 +15,14 @@ const Home = () => {
     const [selectedDay, setSelectedDay] = useState(new Date().getDate().toString());
     const [days, setDays] = useState<number[]>([]);
 
+    const [report, setReport] = useState({
+        noOnForcingMachine: 0,
+        total: 0,
+        moneyUsed: 0,
+        initialMoney: 1000000,
+        note: '',
+    });
+
     const [noGlassInDay, setNoGlassInDay] = useState({ // This state 
         cups500ml: 0,
         cups700ml: 0,
@@ -40,10 +48,15 @@ const Home = () => {
         setSelectedDay(e.target.value);
     };
 
+    const formatNumber = (number: number): string => { // Convert a number to a string with format 000.000.000
+        return new Intl.NumberFormat('de-DE').format(number);
+    };
+
+
     const handleSendToAdministrator = async () => {
         const staffInfo = localStorage.getItem('staffInfo');
         const parsedStaffInfo = staffInfo ? JSON.parse(staffInfo) : null;
-        const data = {
+        const tab01Data = {
             branchId: branchId,
             selectedDate: selectedDate,
             selectedDay: selectedDay,
@@ -54,9 +67,23 @@ const Home = () => {
             staffName: parsedStaffInfo?.staffName,
             branchName: parsedStaffInfo?.branchName
         }
+        const tab02Data = {
+            branchId: branchId,
+            selectedDate: selectedDate,
+            selectedDay: selectedDay,
+            total: formatNumber(report.total),
+            moneyUsed: formatNumber(report.moneyUsed),
+            initialMoney: formatNumber(report.initialMoney),
+            note: report.note,
+            staffCode: parsedStaffInfo?.id,
+            staffName: parsedStaffInfo?.staffName,
+            branchName: parsedStaffInfo?.branchName,
+            noOnForcingMachine: report.noOnForcingMachine
+        }
         open(); // Open loading spinner 
         try {
-            await addDoc(collection(db, 'pendings'), data);
+            await addDoc(collection(db, 'pendings'), tab01Data);
+            await addDoc(collection(db, 'pendingstab02'), tab02Data);
             close(); // Close loading spinner
             setTypeAndMessage('success', 'Cập nhật thành công!');
         } catch (error) {
@@ -241,8 +268,66 @@ const Home = () => {
                                     </div>
                                 </div>
                             </div>
+
+                            <div className='flex justify-between gap-x-5 flex-col sm:flex-row gap-y-3 mt-5'>
+                                <div className='mb-4 w-full'>
+                                    <label htmlFor="noOnForcingMachine" className='block  text-black mb-2'>Số ly trên máy ép <span className='text-red-500'>(*)</span></label>
+                                    <input
+                                        type="number"
+                                        id="noOnForcingMachine"
+                                        value={report.noOnForcingMachine}
+                                        onChange={(e) => setReport({ ...report, noOnForcingMachine: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                    />
+                                </div>
+                                <div className='mb-4 w-full'>
+                                    <label htmlFor="total" className='block  text-black mb-2'>Tổng tiền cuối ngày <span className='text-red-500'>(*)</span></label>
+                                    <input
+                                        type="number"
+                                        id="total"
+                                        value={report.total}
+                                        onChange={(e) => setReport({ ...report, total: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                    />
+                                </div>
+                                <div className='mb-4 w-full'>
+                                    <label htmlFor="moneyUsed" className='block  text-black mb-2'>Chi trong ngày <span className='text-red-500'>(*)</span></label>
+                                    <input
+                                        type="number"
+                                        id="moneyUsed"
+                                        value={report.moneyUsed}
+                                        onChange={(e) => setReport({ ...report, moneyUsed: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                    />
+                                </div>
+                                <div className='mb-4 w-full'>
+                                    <label htmlFor="initialMoney" className='block text-black mb-2'>Vốn <span className='text-red-500'>(*)</span></label>
+                                    <input
+                                        type="number"
+                                        id="initialMoney"
+                                        value={report.initialMoney}
+                                        onChange={(e) => setReport({ ...report, initialMoney: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                    />
+                                </div>
+                                <div className='mb-4 w-full'>
+                                    <label htmlFor="initialMoney" className='block text-black mb-2'>Ghi chú <span className='text-red-500'>(*)</span></label>
+                                    <input
+                                        type="text"
+                                        id="note"
+                                        value={report.note}
+                                        onChange={(e) => setReport({ ...report, note: e.target.value })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                    />
+                                </div>
+                            </div>
                             <div className="flex justify-end mt-5 pb-5 font-bold gap-x-2">
-                                <button onClick={() => { handleSendToAdministrator() }} className='px-6 py-2 bg-[#15B392] rounded-md text-white text-lg hover:opacity-80 transition-all'>Cập nhật</button>
+                                <button onClick={() => { handleSendToAdministrator() }} className='px-6 py-2 bg-[#15B392] rounded-md text-white text-lg hover:opacity-80 transition-all'>Gửi duyệt</button>
                             </div>
                         </div>
 

@@ -27,11 +27,8 @@ const UpdateBranch = () => {
         branchImage: ''
     });
 
-    console.log("Refresh");
-
     const [branchImageNew, setBranchImageNew] = useState<File | null>(null);
     useEffect(() => {
-
         const fetchBranch = async () => {
             open(); // Open loading spinner
             try {

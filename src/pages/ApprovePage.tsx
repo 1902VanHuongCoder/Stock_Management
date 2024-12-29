@@ -4,6 +4,7 @@ import { collection, getDocs, deleteDoc, doc, getDoc, setDoc, updateDoc } from '
 import { db } from '../services/firebaseConfig';
 import NotificationContext from '../contexts/NotificationContext';
 import LoadingContext from '../contexts/LoadingContext';
+import { IoMdRefresh } from 'react-icons/io';
 
 interface Approval {
     branchId: string;
@@ -30,6 +31,7 @@ interface Approval {
 }
 
 const ApprovePage = () => {
+    const [refresh, setRefresh] = useState(false); // State for refreshing the page
     const [pendingApprovals, setPendingApprovals] = useState<Approval[]>([]);
     const { setTypeAndMessage } = useContext(NotificationContext);
     const { open, close } = useContext(LoadingContext);
@@ -294,13 +296,16 @@ const ApprovePage = () => {
     useEffect(() => {
         const fetchPendingApprovals = async () => {
             try {
+                open();
                 const querySnapshot = await getDocs(collection(db, 'pendings'));
                 const data = querySnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 } as Approval));
                 setPendingApprovals(data);
+                close();
             } catch (error) {
+                close();
                 console.error("Lỗi khi lấy dữ liệu pending approvals:", error);
             }
         }
@@ -322,6 +327,11 @@ const ApprovePage = () => {
                 <div className='hidden sm:block w-full text-center bg-[#2a2f2a] h-[80px]'>
                     <h1 className='text-4xl font-bold text-white drop-shadow-md  h-full flex justify-center items-center uppercase'>DUYỆT THÔNG TIN DO NHÂN VIÊN CẬP NHẬT</h1>
                 </div>
+                <div className='px-4 pt-4'>
+                    <button className='px-4 py-2 bg-yellow-400 rounded-md flex items-center gap-x-2 ' onClick={() => setRefresh(!refresh)}>Làm mới <IoMdRefresh /></button>
+
+                </div>
+
                 <div className='w-full p-4 flex flex-col gap-y-4'>
                     {pendingApprovals.length > 0 ?
                         pendingApprovals.map((approval, index) => (

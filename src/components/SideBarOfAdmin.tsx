@@ -12,6 +12,7 @@ const SideBarOfAdmin = () => {
     const navigate = useNavigate();
 
     const [pendingApprovals, setPendingApprovals] = useState<object[]>([]);
+    const [pendingApprovalsTab02, setPendingApprovalsTab02] = useState<object[]>([]); // new state for pending approvals in tab 02
 
     const handleNavigate = (path: string) => {
         navigate(path);
@@ -27,6 +28,18 @@ const SideBarOfAdmin = () => {
                 console.error("Lỗi khi lấy dữ liệu pending approvals:", error);
             }
         }
+
+        const fetchPendingApprovalsTab02 = async () => {
+            try {
+                const querySnapshot = await getDocs(collection(db, 'pendingstab02'));
+                const pendingApprovalsTab02 = querySnapshot.docs.map(doc => doc.data());
+                setPendingApprovalsTab02(pendingApprovalsTab02);
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu pending approvals tab 02:", error);
+            }
+        }
+        console.log("Fetch notifications");
+        fetchPendingApprovalsTab02();
         fetchPendingApprovals();
     }, [])
     return (
@@ -41,7 +54,8 @@ const SideBarOfAdmin = () => {
                     <span className=''>TRANG CHỦ</span>
                 </div>
                 <div onClick={() => handleNavigate("/quanly/themnhanvien")} className='cursor-pointer flex items-center gap-x-2 px-4 py-4 font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><BsFillPeopleFill /></span><span>THÊM NHÂN VIÊN</span></div>
-                <div onClick={() => handleNavigate("/quanly/duyetthongtin")} className='relative cursor-pointer flex items-center gap-x-2 px-4 py-4 font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><FaBell /></span><span>THÔNG BÁO</span>{pendingApprovals.length > 0 && <span className='w-[10px] h-[10px] bg-red-500 rounded-full absolute top-5'></span>}</div>
+                <div onClick={() => handleNavigate("/quanly/duyetthongtin/01")} className='relative cursor-pointer flex items-center gap-x-2 px-4 py-4 font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><FaBell /></span><span>DUYỆT THÔNG TIN TAB 01</span>{pendingApprovals.length > 0 && <span className='w-[10px] h-[10px] bg-red-500 rounded-full absolute top-5'></span>}</div>
+                <div onClick={() => handleNavigate("/quanly/duyetthongtin/02")} className='relative cursor-pointer flex items-center gap-x-2 px-4 py-4 font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><FaBell /></span><span>DUYỆT THÔNG TIN TAB 02</span>{pendingApprovalsTab02.length > 0 && <span className='w-[10px] h-[10px] bg-red-500 rounded-full absolute top-5'></span>}</div>
                 {/* <div className='cursor-pointer flex items-center gap-x-2 h-[40px] px-4  font-bold  transition-all text-white drop-shadow-lg hover:text-[#D2FF72]'><span className='flex justify-center items-center'><FaBuilding /></span><span>THÊM CHI NHÁNH    </span></div> */}
             </div>
             <div className="px-6 py-5 border-t-[1px] border-white"><button onClick={() => handleNavigate('/')} className="flex items-center gap-x-2 h-[40px] px-4 bg-white rounded-md font-bold hover:bg-[#15B392] hover:text-white transition-all hover:border-[2px] hover:border-white"><RiLogoutBoxLine />ĐĂNG XUẤT</button></div>

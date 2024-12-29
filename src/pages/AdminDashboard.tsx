@@ -14,6 +14,7 @@ import { MdDelete } from "react-icons/md";
 import { FaPenToSquare } from "react-icons/fa6";
 import { FaPlusCircle } from "react-icons/fa";
 import { uploadImage } from '../cloudinary';
+import { IoMdRefresh } from 'react-icons/io';
 
 type Branch = {
     createdAt: Timestamp | string;
@@ -27,8 +28,8 @@ type Branch = {
 
 const AdminDashboard = () => {
     const navigate = useNavigate(); // Hook for navigation
-
     const [isModalOpen, setIsModalOpen] = useState(false); // State for controlling adding branch modal 
+    const [refresh, setRefresh] = useState(false); // State for refreshing the page
 
     // 4 states for adding branch form 
     const [branchName, setBranchName] = useState('');
@@ -37,6 +38,7 @@ const AdminDashboard = () => {
     const [img, setImg] = useState<File | null>(null);
 
     const [branches, setBranches] = useState<{ createdAt: Timestamp | string; branchImage: string; branchImagePublicId: string; name: string; password: string; branchId: string; id: string; }[]>([]); // state to store branches that fetched from Firestore 
+    // console.log(branches);
 
     const { setTypeAndMessage } = useContext(NotificationContextType); // Context for notification
     const { open, close } = useContext(LoadingContext); // Context for loading
@@ -118,6 +120,7 @@ const AdminDashboard = () => {
         }
 
     }
+
     const handleUpdateBranch = (id: string) => {
         navigate(`/quanly/capnhatchinhanh/${id}`);
     }
@@ -125,32 +128,6 @@ const AdminDashboard = () => {
     const handleNavigateToStockDetail = (branchId: string) => {
         navigate(`/quanly/nguyenkiet/chinhanh/${branchId}`);
     }
-
-    useEffect(() => {
-        const getAllBranches = async () => {
-            open(); // Open loading
-            try {
-                const querySnapshot = await getDocs(collection(db, 'branches')); // Get all branches from Firestore
-                const branches = querySnapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    return { ...data, id: doc.id, createdAt: data.createdAt };
-                }) as Branch[]; // Map data from Firestore to branches array
-
-                console.log(branches);
-
-                // Sort branches by createdAt timestamp in descending order by default
-                sortBranchesByTimeDescending(branches);
-
-                setBranches(branches);
-                close(); // Close loading
-            } catch (error) {
-                console.error("Lỗi khi lấy dữ liệu chi nhánh:", error);
-                setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
-                close(); // Close loading
-            }
-        };
-        getAllBranches();
-    }, []);
 
     const getTime = (createdAt: Timestamp | string | Date): number => { // Get time from createdAt field in branch object to sort branches
         if (createdAt instanceof Timestamp) {
@@ -173,6 +150,28 @@ const AdminDashboard = () => {
         setBranches([...branches]); // Update state with sorted branches
     };
 
+    useEffect(() => {
+        const getAllBranches = async () => {
+            open(); // Open loading
+            try {
+                const querySnapshot = await getDocs(collection(db, 'branches')); // Get all branches from Firestore
+                const branches = querySnapshot.docs.map((doc) => {
+                    const data = doc.data();
+                    return { ...data, id: doc.id, createdAt: data.createdAt };
+                }) as Branch[]; // Map data from Firestore to branches array
+
+                // Sort branches by createdAt timestamp in descending order by default
+                sortBranchesByTimeDescending(branches);
+                setBranches(branches);
+                close(); // Close loading
+            } catch (error) {
+                console.error("Lỗi khi lấy dữ liệu chi nhánh:", error);
+                setTypeAndMessage('fail', 'Lỗi khi lấy dữ liệu chi nhánh, vui lòng thử lại!');
+                close(); // Close loading
+            }
+        };
+        getAllBranches();
+    }, [refresh]);
 
     return (
         <div className='relative bg-[#15B392] min-h-screen max-w-screen sm:flex sm:justify-end'>
@@ -193,6 +192,7 @@ const AdminDashboard = () => {
                     <div className='flex gap-x-2'>
                         <button className='px-4 py-2 bg-white rounded-md' onClick={() => sortBranchesByTimeAscending(branches)}>Cũ nhất</button>
                         <button className='px-4 py-2 bg-white rounded-md' onClick={() => sortBranchesByTimeDescending(branches)}>Mới nhất</button>
+                        <button className='px-4 py-2 bg-yellow-400 rounded-md flex items-center gap-x-2 ' onClick={() => setRefresh(!refresh)}>Làm mới <IoMdRefresh /></button>
                     </div>
 
                     {/* Your existing JSX to display branches */}

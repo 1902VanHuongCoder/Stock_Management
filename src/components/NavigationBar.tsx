@@ -33,7 +33,7 @@ const NavigationBar = () => {
             <div onClick={handleNavigate} className="w-[50px] h-[50px]"><img src={CatIcon} alt="cat_icon_image" /></div>
             <p className="text-xl sm:text-4xl font-bold text-white"><span className="text-[#D2FF72]">NGUYỄN</span> <span>KIỆT</span></p>
             <div className="sm:hidden flex text-2xl text-white items-center gap-x-2">
-                <span onClick={open}><FaBars /></span><span className="relative"><FaBell /></span>{pendingApprovals.length > 0 && <span className='w-[10px] h-[10px] bg-red-500 rounded-full absolute top-5'></span>}</div>
+                <span onClick={open}><FaBars /></span><span className="relative"><FaBell /></span>{pendingApprovals.length > 0 && <span className='w-[10px] h-[10px] bg-red-500 rounded-full absolute top-7 right-5'></span>}</div>
 
             <div className="justify-center gap-x-10 hidden sm:flex items-center">
                 {/* <ButtonToHome path="/quanly/nguyenkiet" /> */}

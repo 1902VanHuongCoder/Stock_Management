@@ -11,7 +11,7 @@ import { ConfirmProvider } from './contexts/ConfirmContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
-    <StrictMode>
+    {/* <StrictMode> */}
       <SideBarProvider>
         <NotificationProvider>
           <LoadingProvider>
@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
           </LoadingProvider>
         </NotificationProvider>
       </SideBarProvider>
-    </StrictMode>
+    {/* </StrictMode> */}
   </BrowserRouter>
 
 )

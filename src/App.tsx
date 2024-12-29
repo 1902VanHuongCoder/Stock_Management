@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { ApprovePage, ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
+import { ApprovePageTab02, ApprovePage, ErrorPage, ConfirmDialog, Loading, SideBar, StaffDashboard, UpdateBranch, Notification, NLogin, Introduction, ALogin, Home, EmployeeDashboard, AdminDashboard, StockDetails, AddStockInfo, AddStaff } from './helpers';
 // TO VAN HUONG - PAUL TO - VIET NAM
 const App = () => {
   return (
@@ -21,7 +21,8 @@ const App = () => {
           <Route path="/nhanvien/capnhattonkho" element={<AddStockInfo />} />
           <Route path="/quanly/themnhanvien" element={<AddStaff />} />
           <Route path="/quanly/capnhatchinhanh/:id" element={<UpdateBranch />} />
-          <Route path="/quanly/duyetthongtin" element={<ApprovePage />} />
+          <Route path="/quanly/duyetthongtin/01" element={<ApprovePage />} />
+          <Route path="/quanly/duyetthongtin/02" element={<ApprovePageTab02 />} />
           <Route path="/nhanvien/kho" element={<StaffDashboard />} />
           <Route path="/dangnhap" element={<AdminDashboard />} />
           <Route path="/employee" element={<EmployeeDashboard />} />
