@@ -1,4 +1,4 @@
-// TO VAN HUONG - PAUL TO - VIET NAM
+// TO VAN HUONG - PAUL TO - VIET NAM - BACKUP 2021-11-01 10:00 PM 
 import { useContext, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { NavigationBar, SideBarOfAdmin, ReportModal, ModifyStockDataInADay, UpdateRemainStock, UpdateReportModal } from '../helpers';
