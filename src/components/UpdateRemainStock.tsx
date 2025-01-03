@@ -62,8 +62,15 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch, r
             let yearToAccessData = parseInt(year); // Default year to access data is the selected 
             let previousDay = parseInt(selectedDay); // Default previous day to access data is the selected day
 
+
+
+            /* Some changes */
+            // let previousDay = parseInt(selectedDay) - 1; // Default previous day to access data is the selected day
+
             while (noCupsLeftInTheStore['500ml'] === 0 && noCupsLeftInTheStore['700ml'] === 0 && noCupsLeftInTheStore['800ml'] === 0 && flagToStopLoop < 2) {
-                if (selectedDay === '1' || previousDay < 1 && month !== '01') {
+                if (month !== '01' && (selectedDay === '1' || previousDay < 1)) {
+                    alert("Run this !== 01");
+                    console.log("Run this !== 01");
                     monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0');
                     const documentIdOfPreviousMonth = `${selectedBranch}${year}${monthToAccessData}`;
                     const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
@@ -82,7 +89,9 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch, r
                     } else {
                         flagToStopLoop += 1;
                     }
-                } else if (selectedDay === '1' || previousDay < 1 && month === '01') {
+                } else if (month === '01' && (selectedDay === '1' || previousDay < 1)) {
+                    alert("Run this === 01");
+                    console.log("Run this === 01");
                     yearToAccessData = yearToAccessData - 1;
                     monthToAccessData = '12';
                     const documentIdOfPreviousMonth = `${selectedBranch}${yearToAccessData.toString()}${monthToAccessData}`;
@@ -287,8 +296,6 @@ const UpdateRemainStock = ({ closeModal, yearAndMonthToUpdate, selectedBranch, r
         setDays(daysArray);
 
     }, [yearAndMonthToUpdate]);
-
-    console.log("Run");
 
     return (
         <div className='fixed top-0 left-0 w-screen h-screen flex justify-center items-center bg-[rgba(0,0,0,.8)]'>

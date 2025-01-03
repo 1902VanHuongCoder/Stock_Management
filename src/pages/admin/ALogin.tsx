@@ -2,7 +2,7 @@ import Container from '../../components/Container';
 import { db } from '../../services/firebaseConfig'; // Import the db object from the firebase file
 import { collection, getDocs } from 'firebase/firestore/lite'; // Import the getFirestore, collection, and getDocs functions from the lite version of the Firebase SDK
 import { useNavigate } from 'react-router-dom';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { CatDrinksMilkTeaGif } from '../../helpers';
 import LoadingContext from '../../contexts/LoadingContext';
 import NotificationContext from '../../contexts/NotificationContext';
@@ -68,6 +68,13 @@ const ALogin = () => {
             setTypeAndMessage('fail', 'Kết nối mạng không ổn định! Vui lòng thử lại!');
         }
     };
+
+    useEffect(() => {  // This useEffect hook will run when the component mounts
+        const adminId = localStorage.getItem('adminId');
+        if (adminId) {
+            navigate('/quanly/nguyenkiet');
+        }
+    }, []);
 
     return (
         <Container>

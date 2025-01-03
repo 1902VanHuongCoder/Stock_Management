@@ -2,7 +2,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CatDrinksMilkTeaGif } from '../helpers';
-import { addDoc, collection } from 'firebase/firestore/lite';
+import { addDoc, collection, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore/lite';
 import { db } from '../services/firebaseConfig';
 import NotificationContext from '../contexts/NotificationContext';
 import LoadingContext from '../contexts/LoadingContext';
@@ -36,6 +36,12 @@ const Home = () => {
     });
 
     const [breakGlass, setBreakGlass] = useState({
+        cups500ml: 0,
+        cups700ml: 0,
+        cups800ml: 0
+    });
+
+    const [deliveryMoreInTheMorning, setDeliveryMoreInTheMorning] = useState({
         cups500ml: 0,
         cups700ml: 0,
         cups800ml: 0
@@ -93,6 +99,34 @@ const Home = () => {
         }
     };
 
+    const handleSaveDeliveryMoreInTheMorning = async () => { // Save delivery more in the morning data to the database
+        const staffInfo = localStorage.getItem('staffInfo');
+        const parsedStaffInfo = staffInfo ? JSON.parse(staffInfo) : null;
+        const data = {
+            staffCode: parsedStaffInfo?.id,
+            staffName: parsedStaffInfo?.staffName,
+            cups500ml: deliveryMoreInTheMorning.cups500ml,
+            cups700ml: deliveryMoreInTheMorning.cups700ml,
+            cups800ml: deliveryMoreInTheMorning.cups800ml
+        }
+        open(); // Open loading spinner
+        try {
+            const documentId = `${data.staffCode}`;
+            const docRef = doc(db, 'deliveryMoreTempData', documentId);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                updateDoc(docRef, data);
+            } else {
+                setDoc(docRef, data);
+            }
+            close(); // Close loading spinner
+            setTypeAndMessage('success', 'Lưu thành công!');
+        } catch (error) {
+            console.error('Error adding document: ', error);
+            close(); // Close loading spinner
+            setTypeAndMessage('fail', 'Lưu thất bại! Hãy thử lại sau!');
+        }
+    }
     useEffect(() => {
         const month = selectedDate.slice(-2);
         const year = selectedDate.slice(0, 4);
@@ -102,50 +136,138 @@ const Home = () => {
         const daysInMonth = getDaysInMonth(parseInt(year), parseInt(month));
         const daysArray = Array.from({ length: daysInMonth }, (_, i) => i + 1);
         setDays(daysArray);
-
     }, [selectedDate]);
+
+    useEffect(() => {
+        const fetchDeliveryMoreTempData = async () => {
+            const staffInfo = localStorage.getItem('staffInfo');
+            const parsedStaffInfo = staffInfo ? JSON.parse(staffInfo) : null;
+            const documentId = `${parsedStaffInfo?.id}`;
+            const docRef = doc(db, 'deliveryMoreTempData', documentId);
+            const docSnap = await getDoc(docRef);
+            console.log("Run");
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                console.log(data);
+                setDeliveryMoreInTheMorning({
+                    cups500ml: data.cups500ml,
+                    cups700ml: data.cups700ml,
+                    cups800ml: data.cups800ml
+                });
+
+            }
+        }
+        fetchDeliveryMoreTempData();
+    }, [])
 
     return (
         <div className='relative min-h-screen max-w-screen sm:flex sm:justify-end bg-[#15b392]' >
             <div className=' sm:basis-[100%] flex flex-col items-center'>
                 <div className='w-full text-center bg-[#2a2f2a] h-fit py-6'>
-                    <h1 className='text-4xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>THÊM THÔNG TIN QUẦY</h1>
-
+                    <h1 className='text-xl font-bold text-white drop-shadow-md h-full flex justify-center items-center uppercase'>THÊM THÔNG TIN QUẦY</h1>
                 </div>
-                <div className="px-6 py-5 w-full"><button onClick={() => navigate("/")} className="flex items-center gap-x-2 h-[40px] px-4 bg-white rounded-md font-bold hover:bg-[#15B392] hover:text-white transition-all hover:border-[2px] hover:border-white"><RiLogoutBoxLine />ĐĂNG XUẤT</button></div>
+                <div className="px-4 pt-5 mb-5 w-full"><button onClick={() => navigate("/")} className="flex items-center gap-x-2 h-[40px] px-4 bg-white rounded-md font-bold hover:bg-[#15B392] hover:text-white transition-all hover:border-[2px] hover:border-white"><RiLogoutBoxLine />ĐĂNG XUẤT</button></div>
 
-                <div className='p-4 h-full sm:flex sm:items-center sm:flex-col sm:justify-center'>
-                    <div className='mb-4'>
-                        <label htmlFor="date" className='block text-white font-medium mb-2'>Chọn tháng</label>
-                        <input
-                            type="month"
-                            id="date"
-                            value={selectedDate}
-                            onChange={(e) => setSelectedDate(e.target.value)}
-                            className='w-full p-3  sm:w-[400px] rounded-lg border border-gray-300 outline-none'
-                        />
-                    </div>
-                    <div className='relative w-full flex justify-center'>
+                <div className='px-4 pb-4 h-full sm:flex sm:items-center sm:flex-col sm:justify-center'>
+                    <div className='relative w-full flex justify-center flex-col items-center'>
+                        <div className="sm:w-[80%] p-0 rounded-lg mb-5">
+                            <p className="text-white py-4">Lưu ly giao thêm để nhớ</p>
+                            <div className="flex gap-x-3">
+                                <div className='mb-4'>
+                                    <label htmlFor="deliveryCups500ml" className='block font-medium mb-2 text-white'>500ml</label>
+                                    <input
+                                        type="number"
+                                        id="deliveryCups500ml"
+                                        value={deliveryMoreInTheMorning.cups500ml}
+                                        onChange={(e) => setDeliveryMoreInTheMorning({ ...deliveryMoreInTheMorning, cups500ml: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                        min={0}
+                                    />
+                                </div>
+                                <div className='mb-4'>
+                                    <label htmlFor="deliveryCups700ml" className='block font-medium mb-2 text-white'>700ml</label>
+                                    <input
+                                        type="number"
+                                        id="deliveryCups700ml"
+                                        value={deliveryMoreInTheMorning.cups700ml}
+                                        onChange={(e) => setDeliveryMoreInTheMorning({ ...deliveryMoreInTheMorning, cups700ml: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                        min={0}
+                                    />
+                                </div>
+                                <div className='mb-4'>
+                                    <label htmlFor="deliveryCups800ml" className='block font-medium mb-2 text-white'>800ml</label>
+                                    <input
+                                        type="number"
+                                        id="deliveryCups800ml"
+                                        value={deliveryMoreInTheMorning.cups800ml}
+                                        onChange={(e) => setDeliveryMoreInTheMorning({ ...deliveryMoreInTheMorning, cups800ml: parseInt(e.target.value) })}
+                                        className='w-full p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                        min={0}
+                                    />
+                                </div>
+                                <div className='mb-4 self-end'>
+                                    <label htmlFor="submit" className='hidden font-medium mb-2 text-white '>500</label>
+                                    <input
+                                        type="button"
+                                        id="submit"
+                                        onClick={() => handleSaveDeliveryMoreInTheMorning()}
+                                        value={'Lưu'}
+                                        className='border-[3px] border-solid border-slate-800 px-6 py-3 rounded-lg outline-none bg-[#FFEC59] font-bold hover:shadow-lg cursor-pointer transition-all'
+                                    />
+                                </div>
+                            </div>
+                            {/* <table className=" text-black bg-white w-fit">
+                                <thead>
+                                    <tr className=''>
+                                        <th className="py-5 px-4">500ml</th>
+                                        <th className="py-5 px-4">700ml</th>
+                                        <th className="py-5 px-4">800ml</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr className='border-t-[2px] border-dashed border-slate-500'>
+                                        <td className="py-5 px-5">{deliveryMoreInTheMorning.cups500ml}</td>
+                                        <td className="py-5 px-5">{deliveryMoreInTheMorning.cups700ml}</td>
+                                        <td className="py-5 px-5">{deliveryMoreInTheMorning.cups800ml}</td>
+                                    </tr>
+                                </tbody>
+                            </table> */}
+                        </div>
                         <div className="px-5 sm:p-6 w-full sm:w-[80%] bg-white pt-5 border-[2px] border-dashed border-slate-500 shadow-white">
                             <h2 className='text-center font-bold text-2xl text-[#15B392] drop-shadow-md pt-2 pb-6'>CẬP NHẬT TỒN KHO</h2>
-                            <div className='mb-4'>
-                                <label htmlFor="date" className='block text-black font-medium mb-2'>Chọn ngày <span className="text-red-500">(*)</span></label>
-                                <select
-                                    id="day"
-                                    value={selectedDay}
-                                    onChange={handleDayChange}
-                                    className='w-full sm:w-[400px] p-3 rounded-lg border border-gray-300 outline-none'
-                                    required
-                                >
-                                    <option value="" disabled>Chọn ngày</option>
-                                    {days.map((day) => (
-                                        <option key={day} value={day}>{day}</option>
-                                    ))}
-                                </select>
+                            <div className='flex flex-col gap-y-3 sm:flex-row sm:gap-x-4 mb-5'>
+                                <div className='mb-4'>
+                                    <label htmlFor="date" className='block text-black font-medium mb-2'>Chọn ngày <span className="text-red-500">(*)</span></label>
+                                    <select
+                                        id="day"
+                                        value={selectedDay}
+                                        onChange={handleDayChange}
+                                        className='w-full sm:w-[400px] p-3 rounded-lg border border-gray-300 outline-none'
+                                        required
+                                    >
+                                        <option value="" disabled>Chọn ngày</option>
+                                        {days.map((day) => (
+                                            <option key={day} value={day}>{day}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className='mb-4'>
+                                    <label htmlFor="date" className='block text-black font-medium mb-2'>Chọn tháng</label>
+                                    <input
+                                        type="month"
+                                        id="date"
+                                        value={selectedDate}
+                                        onChange={(e) => setSelectedDate(e.target.value)}
+                                        className='w-full p-3 sm:w-[400px] rounded-lg border border-gray-300 outline-none'
+                                    />
+                                </div>
                             </div>
-                            <div className="sm:flex sm:gap-x-4">
-
-                                <div className="p-0 sm:p-4 rounded-lg">
+                            <div className="sm:flex sm:gap-x-4 mb-10">
+                                <div className="p-0  rounded-lg">
                                     <p className="text-black py-4">Hàng giao thêm cho kho <span className="text-red-500">(*)</span></p>
                                     <div className="flex gap-x-3">
                                         <div className='mb-4'>
@@ -187,7 +309,7 @@ const Home = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-0 sm:p-4 rounded-lg">
+                                <div className="p-0  rounded-lg">
                                     <p className="text-black py-4">Hàng tồn kho trong ngày hôm nay <span className="text-red-500">(*)</span></p>
                                     <div className="flex gap-x-3">
                                         <div className='mb-4'>
@@ -229,7 +351,7 @@ const Home = () => {
                                     </div>
                                 </div>
 
-                                <div className="p-0 sm:p-4 rounded-lg">
+                                <div className="p-0  rounded-lg">
                                     <p className="text-black py-4">Số ly vỡ <span className="text-red-500">(*)</span></p>
                                     <div className="flex gap-x-3">
                                         <div className='mb-4'>
@@ -268,8 +390,7 @@ const Home = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            <div className='flex justify-between gap-x-5 flex-col sm:flex-row gap-y-3 mt-5'>
+                            <div className='flex justify-between gap-x-5 flex-col sm:flex-row gap-y-3'>
                                 <div className='mb-4 w-full'>
                                     <label htmlFor="noOnForcingMachine" className='block  text-black mb-2'>Số ly trên máy ép <span className='text-red-500'>(*)</span></label>
                                     <input
@@ -330,7 +451,6 @@ const Home = () => {
                                 <button onClick={() => { handleSendToAdministrator() }} className='px-6 py-2 bg-[#15B392] rounded-md text-white text-lg hover:opacity-80 transition-all'>Gửi duyệt</button>
                             </div>
                         </div>
-
                         <div className='hidden sm:block absolute bottom-0 right-0'>
                             <img src={CatDrinksMilkTeaGif} alt="logo" className="w-24 h-24" />
                         </div>

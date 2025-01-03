@@ -65,7 +65,7 @@ const ApprovePage = () => {
             let previousDay = parseInt(selectedDay); // Default previous day to access data is the selected day
 
             while (noCupsLeftInTheStore['500ml'] === 0 && noCupsLeftInTheStore['700ml'] === 0 && noCupsLeftInTheStore['800ml'] === 0 && flagToStopLoop < 2) {
-                if (selectedDay === '1' || previousDay < 1 && month !== '01') {
+                if (month !== '01' && (selectedDay === '1' || previousDay < 1)) {
                     monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0');
                     const documentIdOfPreviousMonth = `${branchId}${year}${monthToAccessData}`;
                     const docRefOfPreviousMonth = doc(db, 'stocks', documentIdOfPreviousMonth);
@@ -84,7 +84,7 @@ const ApprovePage = () => {
                     } else {
                         flagToStopLoop += 1;
                     }
-                } else if (selectedDay === '1' || previousDay < 1 && month === '01') {
+                } else if (month === '01' && (selectedDay === '1' || previousDay < 1)) {
                     yearToAccessData = yearToAccessData - 1;
                     monthToAccessData = '12';
                     const documentIdOfPreviousMonth = `${branchId}${yearToAccessData.toString()}${monthToAccessData}`;

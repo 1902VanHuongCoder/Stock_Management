@@ -182,7 +182,7 @@ const StockDetails = () => {
                 if (parseInt(ngayTruocNgayBiXoa) > 0) { // if ngayTruocNgayBiXoa > 0, we just need to reduce 1 day to find the day before the selected day 
                     ngayTruocNgayBiXoa = (parseInt(ngayTruocNgayBiXoa) - 1).toString();
                 }
-                if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData !== '01') { // if ngayTruocNgayBiXoa < 1 and monthToAccessData !== '01', we need to decrease 1 month and set ngayTruocNgayBiXoa to 31 to find the day before the selected day that has data
+                if (monthToAccessData !== '01' && parseInt(ngayTruocNgayBiXoa) < 1) { // if ngayTruocNgayBiXoa < 1 and monthToAccessData !== '01', we need to decrease 1 month and set ngayTruocNgayBiXoa to 31 to find the day before the selected day that has data
                     monthToAccessData = String(parseInt(monthToAccessData) - 1).padStart(2, '0'); // decrease 1 month 
                     const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`; // Create document id to access stock data in Firestore based on month that have just decreased
 
@@ -197,8 +197,7 @@ const StockDetails = () => {
                         ngayTruocNgayBiXoa = "0";
                     }
                 }
-                else if (parseInt(ngayTruocNgayBiXoa) < 1 && monthToAccessData === '01') { // if ngayTruocNgayBiXoa < 1 and monthToAccessData === '01', we need to decrease 1 year and set monthToAccessData to 12 to find the day before the selected day that has data
-
+                else if (monthToAccessData === '01' && parseInt(ngayTruocNgayBiXoa) < 1) { // if ngayTruocNgayBiXoa < 1 and monthToAccessData === '01', we need to decrease 1 year and set monthToAccessData to 12 to find the day before the selected day that has data
                     yearToAccessData = (parseInt(yearToAccessData) - 1).toString(); // decrease 1 year
                     monthToAccessData = "12"; // set monthToAccessData to 12
                     const newDocumentId = `${selectedBranch}${yearToAccessData}${monthToAccessData}`;
@@ -336,13 +335,11 @@ const StockDetails = () => {
                     setTypeAndMessage('error', 'Kết nối mạng không ổn định. Hãy kiểm tra lại kết nối của bạn và thử lại sau!');
                 }
             } else { // If the day before the selected day and the day after the selected day do not have data. We just need to delete the day that we want to delete
-                if (monthToUpdate !== month && yearToUpdate !== year) { // if the day that we want to delete and the day that we want to update are not in the same month and year, we only to delete the day that we want to delete 
-                    const documentToDeleteStockData = `${selectedBranch}${year}${month}`;
-                    const docRefToDeleteStockData = doc(db, 'stocks', documentToDeleteStockData);
-                    const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
-                    await setDoc(docRefToDeleteStockData, Object.fromEntries(newAllStockDataInAMonth));
-                    deleteReportDataInSomeDay(); // Delete stock02 data in selected day
-                }
+                const documentToDeleteStockData = `${selectedBranch}${year}${month}`;
+                const docRefToDeleteStockData = doc(db, 'stocks', documentToDeleteStockData);
+                const newAllStockDataInAMonth = allStockDataInAMonth.filter((data) => data[0] !== day);
+                await setDoc(docRefToDeleteStockData, Object.fromEntries(newAllStockDataInAMonth));
+                deleteReportDataInSomeDay(); // Delete stock02 data in selected day
             }
             setReFetchStockData(!reFetchStockData); // Re-fetch stock data in a month from Firestore to display updated data on screen
             setTypeAndMessage('success', 'Xóa dữ liệu thành công!'); // Display success message 

@@ -1,4 +1,3 @@
-import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom';
 
@@ -12,15 +11,15 @@ import { ConfirmProvider } from './contexts/ConfirmContext.tsx';
 createRoot(document.getElementById('root')!).render(
   <BrowserRouter>
     {/* <StrictMode> */}
-      <SideBarProvider>
-        <NotificationProvider>
-          <LoadingProvider>
-            <ConfirmProvider>
-              <App />
-            </ConfirmProvider>
-          </LoadingProvider>
-        </NotificationProvider>
-      </SideBarProvider>
+    <SideBarProvider>
+      <NotificationProvider>
+        <LoadingProvider>
+          <ConfirmProvider>
+            <App />
+          </ConfirmProvider>
+        </LoadingProvider>
+      </NotificationProvider>
+    </SideBarProvider>
     {/* </StrictMode> */}
   </BrowserRouter>
 

@@ -10,7 +10,7 @@ const ErrorPage = () => {
                     <img src={sadCat} alt='Sad cat' className='w-full h-full' />
                 </div>
                 <h1 className='text-3xl font-bold text-white drop-shadow-lg text-center'>404 - KHÔNG TÌM THẤY TRANG</h1>
-                <button onClick={() => { navigate("/quanly/nguyenkiet") }} className='py-4 px-6 bg-white mt-5 rounded-md font-bold hover:opacity-80 text-[#15B392] drop-shadow-lg'>TRANG CHỦ</button>
+                <button onClick={() => { navigate("/") }} className='py-4 px-6 bg-white mt-5 rounded-md font-bold hover:opacity-80 text-[#15B392] drop-shadow-lg'>TRANG CHỦ</button>
             </div>
         </div>
     )
